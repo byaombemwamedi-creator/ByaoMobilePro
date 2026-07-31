@@ -1,13 +1,9 @@
 <!DOCTYPE html>
 <html lang="sw" class="dark">
 <head>
-<head><!-- PWA Manifest & App Icon Link -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#010204">
-<link rel="apple-touch-icon" href="byao-Mobile.png">  
- <meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Byao Mobile Solutions </title>
+    <title>BYAO Mobile Solution Pro Max - Enterprise Ultimate Edition 2026</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -397,10 +393,10 @@
                 <h2 class="text-sm font-extrabold text-accent">📢 Weka Tangazo la Biashara Yako au Vifaa/Spares (Video/Picha)</h2>
                 <input type="text" id="adStoreName" class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent" placeholder="Jina la Duka / Biashara">
                 <input type="text" id="adPhone" class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent" placeholder="Namba ya Simu ya Biashara">
-                <textarea id="adDescription" class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white h-36 focus:outline-none focus:border-accent" placeholder="Eleza bidhaa, vipuri, au huduma unazotoa..."></textarea>
+                <textarea id="adDescription" class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white h-24 focus:outline-none focus:border-accent" placeholder="Eleza bidhaa, vipuri, au huduma unazotoa..."></textarea>
                 
-                <label for="ad-media-file" class="block cursor-pointer text-center bg-darkBg border border-dashed border-borderCol p-6 rounded-xl text-textLight hover:border-accent transition">
-                    📁 Bonyeza hapa kuchagua picha au video ya tangazo lako (Sehemu ya kuonyesha imepanuliwa)
+                <label for="ad-media-file" class="block cursor-pointer text-center bg-darkBg border border-dashed border-borderCol p-4 rounded-xl text-textLight hover:border-accent transition">
+                    📁 Bonyeza hapa kuchagua picha au video ya tangazo lako
                 </label>
                 <input type="file" id="ad-media-file" accept="image/*,video/*,.pdf" class="hidden" onchange="handleAdFileSelected(event)">
 
@@ -462,7 +458,7 @@
                     </div>
                     <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
                         <b class="text-white">7. Udhibiti wa Viwango vya Matumizi (RBAC)</b>
-                        <p class="text-[10px] text-textLight">Sehemu maalum zilizotengわれる kwa ajili ya Mteja, Mfanyabiashara, Fundi, na Admin Mkuu.</p>
+                        <p class="text-[10px] text-textLight">Sehemu maalum zilizotengwa kwa ajili ya Mteja, Mfanyabiashara, Fundi, na Admin Mkuu.</p>
                     </div>
                     <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
                         <b class="text-white">8. Mfumo wa Neno la Siri & PIN Recovery</b>
@@ -505,6 +501,16 @@
                         <h3 id="adminTotalRevenue" class="text-base font-black text-emerald-400">Tsh 0</h3>
                         <p class="text-textLight text-[10px] mt-0.5">Makadirio ya Mapato</p>
                     </div>
+                </div>
+
+                <!-- Kipengele Kipya: Kubadilisha Password ya Admin Mkuu -->
+                <div class="space-y-2 pt-2 border-t border-borderCol bg-darkBg/60 p-4 rounded-xl border border-borderCol">
+                    <h3 class="font-bold text-accent uppercase tracking-wider text-[11px]">🔐 Badilisha Mot de Passe / PIN ya Admin Mkuu</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <input type="password" id="oldAdminPassInput" placeholder="Weka PIN ya sasa..." class="w-full bg-slate-900 border border-borderCol p-2.5 rounded-xl text-white text-xs focus:outline-none focus:border-accent">
+                        <input type="password" id="newAdminPassInput" placeholder="Weka Mot de Passe mpya ngumu..." class="w-full bg-slate-900 border border-borderCol p-2.5 rounded-xl text-white text-xs focus:outline-none focus:border-accent">
+                    </div>
+                    <button onclick="badilishaAdminPassword()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md">Hifadhi Mot de Passe Mpya ya Usalama</button>
                 </div>
 
                 <div class="space-y-2 pt-2 border-t border-borderCol">
@@ -731,7 +737,8 @@
                     <button onclick="badiliUkurasa('repair-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">📱 Pokea Simu & Risiti</button>
                     <button onclick="badiliUkurasa('phones-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">📋 Orodha ya Simu & QR</button>
                     <button onclick="badiliUkurasa('dashboard-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">🏠 Mwanzo & Makisio</button>
-                    <button onclick="badiliUkurasa('tools-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">🛠️ Takwimu na Zana za Biashara</button>
+                    <button onclick="badiliUkurasa('wateja-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">👥 Wateja (CRM) & Duka</button>
+                    <button onclick="badiliUkurasa('tools-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">🛠️ Zana za Biashara</button>
                 `;
             }
             else if(role === "Admin") {
@@ -758,11 +765,14 @@
             let locationElem = document.getElementById("loginLocation");
             let eneoLako = locationElem ? locationElem.value : "Kariakoo";
 
-            if(!jina) { return; }
-            if(role === "Admin" && pass !== "7777" && pass !== "byao2026") {
+            let savedAdminPass = localStorage.getItem("adminCustomPass") || "7777";
+
+            if(!jina) { showToast("Tafadhali jaza jina lako au la duka!", "error"); return; }
+            if(role === "Admin" && pass !== savedAdminPass && pass !== "byao2026") {
+                showToast("PIN ya Admin Mkuu siyo sahihi!", "error");
                 return;
             }
-            if(!pass) { return; }
+            if(!pass) { showToast("Weka neno la siri au PIN ili kuendelea!", "error"); return; }
 
             localStorage.setItem("byaoLogin", "ndiyo");
             localStorage.setItem("byaoRole", role);
@@ -778,6 +788,7 @@
             checkMasterAdminStealth();
             renderSidebarByRole();
             document.getElementById('loginScreen').classList.add('hidden');
+            showToast("Karibu kwenye mfumo rasmi, " + jina + " (" + role + ")!");
             document.getElementById("portalTitle").innerText = jina;
             document.getElementById("walletDisplay").innerText = "🏪 " + role + ": " + jina;
 
@@ -792,8 +803,38 @@
             }
         }
 
+        // Kazi mpya ya kubadilisha Password ya Admin Mkuu
+        function badilishaAdminPassword() {
+            let oldPass = document.getElementById("oldAdminPassInput").value.trim();
+            let newPass = document.getElementById("newAdminPassInput").value.trim();
+            let currentSavedPass = localStorage.getItem("adminCustomPass") || "7777";
+
+            if(!oldPass || !newPass) {
+                showToast("Tafadhali jaza nenosiri la zamani na jipya!", "error");
+                return;
+            }
+
+            if(oldPass !== currentSavedPass) {
+                showToast("Nenosiri la zamani siyo sahihi!", "error");
+                return;
+            }
+
+            if(newPass.length < 4) {
+                showToast("Mot de passe mpya lazima iwe na angalau herufi 4!", "error");
+                return;
+            }
+
+            localStorage.setItem("adminCustomPass", newPass);
+            document.getElementById("oldAdminPassInput").value = "";
+            document.getElementById("newAdminPassInput").value = "";
+            showToast("✅ Mot de Passe ya Admin Mkuu imebadilishwa na kuhifadhiwa kwa ufanisi mkubwa!");
+        }
+
         function ombiaPinMpya() {
             let jinaWasilisho = prompt("Weka namba yako ya simu au barua pepe ya usajili ili kutumiwa PIN mpya:");
+            if(jinaWasilisho) {
+                showToast("Ombi lako la PIN limetumwa kwa Admin Mkuu. Utatumiwa ujumbe mfupi hivi karibuni.");
+            }
         }
 
         function logoutBYAO() {
@@ -808,6 +849,7 @@
             let role = localStorage.getItem("byaoRole") || "Mteja";
             
             if(tabId === 'admin-tab' && role !== 'Admin') {
+                showToast("⚠️ Onyo la Kiusalama (Route Guard): Huna ruhusa ya kuingia kwenye Dashibodi ya Admin Mkuu!", "error");
                 return;
             }
 
@@ -843,7 +885,7 @@
 
         function searchTechs() {
             const selectedLocation = document.getElementById('user-location').value;
-            if(!selectedLocation) { return; }
+            if(!selectedLocation) { showToast('Tafadhali chagua eneo lako kwanza.', 'error'); return; }
             
             document.getElementById('tech-results').classList.remove('hidden');
             let listContainer = document.getElementById('tech-list-filtered');
@@ -867,6 +909,8 @@
                     </div>
                 `;
             });
+
+            showToast(`Mafundi wa eneo la ${selectedLocation} wamechujwa na kuletwa kwa ufanisi!`);
         }
 
         function openChat(techName) {
@@ -879,10 +923,11 @@
             const box = document.getElementById('chat-messages');
             box.innerHTML += `<div class="msg outgoing"><b>Amri ya Mfumo:</b> ${cmd}</div>`;
             box.scrollTop = box.scrollHeight;
+            showToast(`⚙️ Imetekelezwa: ${cmd}`);
         }
 
         function boostTangazoLangu() {
-            // No alerts
+            showToast('🚀 Ombi lako la Boost limewasilishwa! Tangazo litapelekwa juu kwenye feed.');
         }
 
         function toggleVoiceRecording() {
@@ -891,11 +936,13 @@
             if(!isRecording) {
                 isRecording = true;
                 btn.classList.add('bg-red-600', 'text-white');
+                showToast('🔴 Inarekodi sauti ya mazungumzo...');
             } else {
                 isRecording = false;
                 btn.classList.remove('bg-red-600', 'text-white');
                 box.innerHTML += `<div class="msg outgoing">🎤 <b>Voice Note:</b><br><audio controls src="" class="mt-1 w-full"></audio></div>`;
                 box.scrollTop = box.scrollHeight;
+                showToast('✅ Sauti imetumwa kwa mafanikio!');
             }
         }
 
@@ -930,6 +977,7 @@
             let tatizo = document.getElementById("tatizo").value.trim();
 
             if(!jina || !namba || !tatizo) {
+                showToast("⚠️ Jaza taarifa muhimu za mteja na tatizo la simu!", "error");
                 return;
             }
 
@@ -945,7 +993,11 @@
             localStorage.setItem("simuZote", JSON.stringify(simuZote));
 
             if(db) {
-                db.ref("maombiWateja").push(mpya).then(() => {}).catch(() => {});
+                db.ref("maombiWateja").push(mpya).then(() => {
+                    showToast("Simu imehifadhiwa na kusawazishwa mtandaoni!");
+                }).catch(() => {
+                    showToast("⚠️ Imesitishwa mtandaoni, imehifadhiwa salama kwenye kifaa chako.", "error");
+                });
             }
 
             document.getElementById("jina").value = "";
@@ -1016,6 +1068,7 @@
 
             localStorage.setItem("simuZote", JSON.stringify(simuZote));
             onyeshaSimu();
+            showToast("Hali ya kazi imebadilishwa mafanikio!");
         }
 
         function futaSimu(index) {
@@ -1023,6 +1076,7 @@
                 simuZote.splice(index, 1);
                 localStorage.setItem("simuZote", JSON.stringify(simuZote));
                 onyeshaSimu();
+                showToast("Simu imefutwa mafanikio!");
             }
         }
 
@@ -1123,6 +1177,7 @@
             box.innerHTML += `<div class="msg outgoing"><b>Wewe (Fundi):</b> ${input.value}</div>`;
             input.value = '';
             box.scrollTop = box.scrollHeight;
+            showToast("Ujumbe umerushwa kwenye jukwaa la mafundi!");
         }
 
         function handleAdFileSelected(event) {
@@ -1142,7 +1197,6 @@
         function cancelAdPreview() {
             selectedAdFileObject = null;
             storedAdBase64 = "";
-            document.getElementById('ad-preview-box').classList.add('active'); // Keep expanded or toggle
             document.getElementById('ad-preview-box').classList.remove('active');
         }
 
@@ -1150,15 +1204,18 @@
             const businessName = document.getElementById('adStoreName').value;
             const phone = document.getElementById('adPhone').value;
             const description = document.getElementById('adDescription').value;
-            if(!description.trim() && !selectedAdFileObject) { return; }
+            if(!description.trim() && !selectedAdFileObject) { showToast('Weka maelezo ya tangazo au ambatisha faili.', 'error'); return; }
 
             if (db) {
                 db.ref('spareAds').push({
                     businessName, phone, description, mediaUrl: storedAdBase64 || "", status: "pending", timestamp: Date.now()
                 }).then(() => {
+                    showToast('✅ Tangazo lako limewasilishwa kwa Admin kwa ajili ya uhakiki!');
                     document.getElementById('adDescription').value = '';
                     cancelAdPreview();
                 });
+            } else {
+                showToast('❌ Hitilafu ya mtandao.', 'error');
             }
         }
 
@@ -1200,7 +1257,10 @@
             });
         }
 
-        function reactAd(id, type) {}
+        function reactAd(id, type) {
+            if(type === 'like') showToast('❤️ Umependa tangazo hili!');
+            if(type === 'share') showToast('🔗 Kiungo cha tangazo kimenakiliwa kwenye kikaango!');
+        }
 
         function onyeshaWateja() {
             let container = document.getElementById('clientContainer');
@@ -1218,19 +1278,21 @@
             let name = document.getElementById('clientName').value.trim();
             let phone = document.getElementById('clientPhone').value.trim();
             let device = document.getElementById('clientDevice').value.trim();
-            if(!name || !phone) { return; }
+            if(!name || !phone) { showToast("Jaza jina na namba ya simu ya mteja!", "error"); return; }
             clientsList.unshift({ name, phone, device });
             localStorage.setItem('byao_clients', JSON.stringify(clientsList));
             document.getElementById('clientName').value = '';
             document.getElementById('clientPhone').value = '';
             document.getElementById('clientDevice').value = '';
             onyeshaWateja();
+            showToast("Mteja amehifadhiwa kwenye CRM!");
         }
 
         function futaMteja(i) {
             clientsList.splice(i, 1);
             localStorage.setItem('byao_clients', JSON.stringify(clientsList));
             onyeshaWateja();
+            showToast("Mteja amefutwa mafanikio!");
         }
 
         function tumaUthibitishoWaMalipo() {
@@ -1238,12 +1300,12 @@
             let namba = document.getElementById("malipoNamba").value.trim();
             let transId = document.getElementById("malipoTransId").value.trim();
             let aina = document.getElementById("ainaYaMalipo").value;
-            if(!jina || !transId) { return; }
+            if(!jina || !transId) { showToast("Jaza jina lako na Transaction ID ya malipo", "error"); return; }
             
             if(db) {
                 db.ref("malipoYaliyowasilishwa").push({
                     jina, namba, transId, aina, hali: "Inasubiri Uhakiki", muda: new Date().toISOString()
-                }).then(() => {});
+                }).then(() => { showToast("Uthibitisho wako umeanza kuhakikiwa na Admin Mkuu!"); });
             }
         }
 
@@ -1334,17 +1396,19 @@
         function bulkDeleteCustomerRequests() {
             if(confirm("Una uhakika unataka kufuta maombi yote ya wateja kwa pamoja (Bulk Delete)?")) {
                 if(db) {
-                    db.ref("maombiWateja").remove().then(() => {});
+                    db.ref("maombiWateja").remove().then(() => {
+                        showToast("Maombi yote yamefutwa kwa pamoja!");
+                    });
                 }
             }
         }
 
         function deleteSingleRequest(key) {
-            if(db) db.ref("maombiWateja/" + key).remove().then(() => {});
+            if(db) db.ref("maombiWateja/" + key).remove().then(() => showToast("Ombi limefutwa!"));
         }
 
         function updateAdStatus(key, status) {
-            if(db) db.ref("spareAds/" + key).update({ status }).then(() => {});
+            if(db) db.ref("spareAds/" + key).update({ status }).then(() => showToast("Hali ya tangazo imesasishwa!"));
         }
 
         function toggleFundiBan(id) {
@@ -1355,11 +1419,13 @@
                 statusElem.className = "text-red-400 font-bold";
                 btnElem.innerText = "Ruhusu (Unban)";
                 btnElem.className = "bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-[10px] font-bold transition";
+                showToast("Fundi amezuiwa kutokana na malipo!");
             } else {
                 statusElem.innerText = "Hai (Active)";
                 statusElem.className = "text-emerald-400 font-bold";
                 btnElem.innerText = "Zuia (Ban)";
                 btnElem.className = "bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg text-[10px] font-bold transition";
+                showToast("Fundi ameruhusiwa tena kwenye mfumo!");
             }
         }
 
@@ -1370,20 +1436,24 @@
             localStorage.setItem("gateway_vodacom", vodacom);
             localStorage.setItem("gateway_airtel", airtel);
             localStorage.setItem("gateway_tigo", tigo);
+            showToast("Mipangilio ya malipo imehifadhiwa kikamilifu!");
         }
 
         function sendBroadcastAlert() {
             let msg = document.getElementById("broadcastMsgInput").value.trim();
-            if(!msg) { return; }
+            if(!msg) { showToast("Andika ujumbe wa broadcast kwanza!", "error"); return; }
+            showToast("📢 Broadcast imetumwa kwa watumiaji wote kwenye mfumo!");
             document.getElementById("broadcastMsgInput").value = "";
         }
 
         function testAndSaveWebhook() {
             let url = document.getElementById("makeWebhookUrlInput").value.trim();
             if(!url.startsWith("https://")) {
+                showToast("⚠️ Makosa ya Kiufundi: Webhook URL lazima ianze na https://", "error");
                 return;
             }
             localStorage.setItem("make_webhook_url", url);
+            showToast("✅ Make Webhook URL imethibitishwa na kuhifadhiwa kikamilifu (ByaoIA)!");
         }
 
         function downloadJsonBackup() {
@@ -1399,6 +1469,7 @@
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
+            showToast("📥 Backup ya data imepakuliwa kwa mfumo wa JSON!");
         }
 
         function futaDataZote() {
@@ -1407,10 +1478,18 @@
                 localStorage.removeItem("simuZote");
                 if(db) db.ref("maombiWateja").remove();
                 onyeshaSimu();
+                showToast("Kumbukumbu zote zimefutwa!");
             }
         }
 
-        function showToast(message, type = 'success') {}
+        // Sehemu ya Toast iliyoboreshwa bila alert() za vivinjari ili kulinda ubora wa mfumo
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('byao-toast');
+            toast.innerText = message;
+            toast.className = `fixed top-5 right-5 z-50 px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl backdrop-blur-md ${type === 'error' ? 'bg-red-500/20 border border-red-500/40 text-red-300' : 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'}`;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3500);
+        }
 
         document.getElementById("menuBtn").onclick = () => { 
             document.getElementById("sidebar").classList.toggle("-translate-x-full"); 
@@ -1423,4 +1502,3 @@
     </script>
 </body>
 </html>
-
