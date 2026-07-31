@@ -1,10 +1,10 @@
 {
-  "name": "Byao Mobile Solutions",
+  "name": "Byao Mobile Solutions Pro",
   "short_name": "ByaoMob",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "theme_color": "#010204",
   "icons": [
     {
       "src": "byao-Mobile.png",
