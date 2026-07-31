@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="sw" class="dark">
+<head>
+<head><!-- PWA Manifest & App Icon Link -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#010204">
+<link rel="apple-touch-icon" href="byao-Mobile.png">  
+ <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BYAO Mobile Solution Pr.  - Enterprise Ultimate Edition 2026</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#030712',
+                        bgDeep: '#0b0f19',
+                        cardBg: '#0f172a',
+                        accent: '#10b981',
+                        accentBlue: '#3b82f6',
+                        accentRed: '#ef4444',
+                        warning: '#f59e0b',
+                        textMain: '#f8fafc',
+                        textLight: '#94a3b8',
+                        borderCol: '#1e293b'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; box-sizing: border-box; }
+        .chat-box { height: 340px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem; }
+        .msg { max-width: 82%; padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.9rem; word-break: break-word; }
+        .msg.incoming { background: #1e293b; align-self: flex-start; border: 1px solid #334155; }
+        .msg.outgoing { background: #10b981; color: white; align-self: flex-end; }
+        .preview-container { display: none; background: #0f172a; border: 1px solid #334155; padding: 10px; border-radius: 8px; margin-top: 8px; align-items: center; justify-content: space-between; }
+        .preview-container.active { display: flex; }
+        .media-preview-tag { background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; display: inline-block; margin-top: 5px; }
+        .scam-warning { background: rgba(245, 158, 11, 0.12); border: 1px solid #f59e0b; color: #f59e0b; padding: 0.85rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #030712; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    </style>
+
+    <!-- Firebase SDK Scripts (Compat v9) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-darkBg text-textMain min-h-screen w-full flex flex-col p-3 sm:p-5 m-0 overflow-x-hidden">
+
+    <!-- Toast Notification Mfumo -->
+    <div id="byao-toast" class="fixed top-5 right-5 z-50 hidden bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl backdrop-blur-md">
+        Ujumbe wa Mfumo
+    </div>
+
+    <!-- MODAL YA LOGIN / USALAMA (RBAC ROLE-BASED ACCESS CONTROL) -->
+    <div id="loginScreen" class="fixed inset-0 bg-darkBg/95 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="w-full max-w-md space-y-4">
+            <div class="bg-gradient-to-r from-emerald-950/60 via-cardBg to-cardBg border border-emerald-500/30 p-6 rounded-2xl shadow-2xl text-center space-y-2">
+                <span class="bg-emerald-600 text-white text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-wider">ENTERPRISE SECURE ACCESS</span>
+                <h2 class="text-xl font-black text-white tracking-tight">BYAO MOBILE SOLUTIONS PRO</h2>
+                <p class="text-slate-400 text-xs">Chagua Nafasi yako na Ingiza PIN sahihi ili kuendelea</p>
+            </div>
+            <div class="bg-cardBg border border-slate-800 p-6 rounded-2xl shadow-2xl space-y-4">
+                <div class="space-y-3 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Chagua Nafasi (Role):</label>
+                        <select id="loginRole" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-white focus:outline-none focus:border-emerald-500 transition">
+                            <option value="Mteja">Mteja (Customer)</option>
+                            <option value="Mfanyabiashara">Mfanya Biashara / Duka (Store Owner)</option>
+                            <option value="Fundi">Fundi / Technician (Master Tech)</option>
+                            <option value="Admin">Admin Mkuu (Master Admin)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Jina Kamili / Duka:</label>
+                        <input type="text" id="loginJina" placeholder="Weka jina lako hapa..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-white focus:outline-none focus:border-emerald-500 transition">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">PIN / Neno la Siri (Passcode):</label>
+                        <input type="password" id="loginPass" placeholder="Weka PIN (Mf. Admin: 7777 au Mfanyabiashara: 2026)..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-white focus:outline-none focus:border-emerald-500 transition">
+                    </div>
+                    <div id="loginLocationContainer" class="hidden">
+                        <label class="block font-bold text-slate-300 mb-1">Eneo Lako (Geolocation / Location):</label>
+                        <select id="loginLocation" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-white focus:outline-none focus:border-emerald-500 transition">
+                            <option value="Kariakoo">Kariakoo</option>
+                            <option value="Goma">Goma</option>
+                            <option value="Mwanza">Mwanza</option>
+                            <option value="Nairobi">Nairobi</option>
+                            <option value="Dar es Salaam">Dar es Salaam (Engine)</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="fanyaLogin()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 px-4 rounded-xl text-xs transition shadow-lg shadow-emerald-900/30">
+                    🚀 Ingia Kwenye Mfumo Rasmi
+                </button>
+                <div class="text-center pt-2">
+                    <button onclick="ombiaPinMpya()" class="text-[11px] text-accent hover:underline font-semibold">Umesahau PIN au Neno la Siri?</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kitufe cha Menu na Sidebar ya Navigeshoni -->
+    <button id="menuBtn" class="fixed top-4 left-4 z-40 bg-bgDeep hover:bg-slate-800 text-white font-bold p-2.5 rounded-xl border border-borderCol shadow-xl transition flex items-center gap-2">
+        <span>☰</span> <span class="text-xs hidden sm:inline">Menu Kuu</span>
+    </button>
+    <div id="overlay" class="fixed inset-0 bg-black/70 backdrop-blur-xs hidden z-40"></div>
+
+    <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-bgDeep border-r border-borderCol transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col shadow-2xl">
+        <div class="p-4 border-b border-borderCol flex items-center justify-between bg-slate-950/80">
+            <div class="flex items-center space-x-2">
+                <span class="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase">BYAO PRO</span>
+                <span class="text-sm font-extrabold text-white">Enterprise Edition</span>
+            </div>
+            <button id="closeSidebar" class="text-slate-400 hover:text-white text-xl font-bold p-1">&times;</button>
+        </div>
+        <div id="sidebarMenuContainer" class="flex-1 overflow-y-auto p-3 space-y-1.5 text-xs font-medium"></div>
+    </div>
+
+    <!-- Header Kuu ya Juu -->
+    <header class="w-full max-w-4xl mx-auto flex justify-between items-center bg-bgDeep p-4 rounded-2xl border border-borderCol mb-5 mt-14 sm:mt-2 shadow-xl">
+        <div>
+            <h1 id="portalTitle" class="text-base sm:text-lg font-black text-accent tracking-tight">Byao Mfanyabiashara Pro</h1>
+            <p id="dukaBannerTitle" class="text-xs text-textLight">Mfumo Kamili wa Usimamizi wa Simu na Duka lako!</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <div id="masterStatusDot" class="hidden" style="width: 8px; height: 8px; border-radius: 50%; background-color: #2ecc71;" title="Master Admin Active"></div>
+            <div id="walletDisplay" class="bg-darkBg py-2 px-3.5 rounded-xl border border-borderCol text-xs font-bold text-accent shadow-inner">
+                🏪 Duka: Inapakia...
+            </div>
+        </div>
+    </header>
+
+    <!-- SEHEMU KUU ZA MAUDHUI (TABS) -->
+    <main class="w-full max-w-4xl mx-auto space-y-6 flex-1">
+
+        <!-- 1. UKURASA WA MWANZO, MAKISIO & TAFUTA MAFUNDI -->
+        <section id="dashboard-tab" class="tab-content space-y-5">
+            <div class="bg-bgDeep border border-borderCol p-5 sm:p-6 rounded-2xl shadow-xl space-y-3">
+                <h2 class="text-sm font-extrabold text-accent flex items-center gap-2"><span>🛠️</span> Tafuta Mafundi wa Simu & Vipuri Karibu Yako</h2>
+                <p class="text-xs text-textLight">Chagua au weka eneo lako (Mf. Kariakoo, Mwanza, Goma, Nairobi) ili kuchuja na kuona mafundi wa eneo lako pekee.</p>
+                <div class="flex gap-2">
+                    <select id="user-location" class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-xs text-white focus:outline-none focus:border-accent">
+                        <option value="">-- Chagua Eneo Lako --</option>
+                        <option value="Kariakoo">Kariakoo</option>
+                        <option value="Goma">Goma</option>
+                        <option value="Mwanza">Mwanza</option>
+                        <option value="Nairobi">Nairobi</option>
+                        <option value="Dar es Salaam">Dar es Salaam</option>
+                    </select>
+                    <button class="bg-accent hover:bg-emerald-600 text-white font-bold px-5 py-3 rounded-xl text-xs transition shadow-lg shadow-emerald-900/20" onclick="searchTechs()">Tafuta</button>
+                </div>
+                
+                <div id="tech-results" class="hidden mt-4 space-y-2">
+                    <h4 class="text-xs font-bold text-accent">Mafundi na Maduka Yaliyopatikana Kwenye Eneo Lako:</h4>
+                    <div id="tech-list-filtered" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- ENEO LA MAZUNGUMZO NA FUNDI -->
+            <div id="chat-section" class="bg-bgDeep border border-accent/60 p-5 sm:p-6 rounded-2xl shadow-2xl hidden space-y-4">
+                <div class="scam-warning">
+                    ⚠️ <b>Onyo la Usalama (Anti-Scam Protection):</b> Usitume malipo ya fedha nje ya mfumo wa Byao au kabla ya kuhakiki huduma ya fundi ili kuepuka ulaghai.
+                </div>
+                <div class="flex justify-between items-center border-b border-borderCol pb-3">
+                    <h2 id="chat-title" class="text-sm font-bold text-accent">Mazungumzo na Fundi</h2>
+                    <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-bold">🟢 Live Encrypted</span>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-[1fr_250px] gap-4">
+                    <div class="flex flex-col space-y-3">
+                        <div class="chat-box bg-darkBg border border-borderCol p-3.5 rounded-xl" id="chat-messages">
+                            <div class="msg incoming">Habari! Karibu kwenye chumba cha mawasiliano cha Byao. Tuma ujumbe, picha, video, au sauti hapa chini.</div>
+                        </div>
+
+                        <div id="chat-preview-box" class="preview-container">
+                            <div class="flex items-center gap-2.5 overflow-hidden">
+                                <div id="preview-thumb-container"></div>
+                                <div id="preview-file-name" class="text-xs text-white truncate font-medium">Faili Teule</div>
+                            </div>
+                            <button class="bg-red-600 text-white px-2.5 py-1 rounded text-[10px] font-bold hover:bg-red-700" onclick="cancelMediaPreview()">Futa</button>
+                        </div>
+
+                        <div class="flex gap-2 items-center">
+                            <button class="bg-darkBg border border-borderCol p-2.5 rounded-xl text-accent hover:bg-slate-800 transition" title="Ambatisha Picha, Video, Audio au PDF" onclick="document.getElementById('chat-file-input').click()">📎</button>
+                            <input type="file" id="chat-file-input" class="hidden" accept="image/*,video/*,audio/*,.pdf" onchange="handleFileSelected(event)">
+                            
+                            <button id="voiceRecordBtn" onclick="toggleVoiceRecording()" class="bg-darkBg border border-borderCol p-2.5 rounded-xl text-accent hover:bg-slate-800 transition" title="Rekodi Sauti (Voice Note)">🎤</button>
+                            
+                            <input type="text" class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-xs text-white focus:outline-none focus:border-accent" id="chat-input" placeholder="Andika ujumbe wako...">
+                            <button class="bg-accent hover:bg-emerald-600 text-white font-bold px-5 py-3 rounded-xl text-xs transition" onclick="sendMessage()">Tuma</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-darkBg border border-borderCol p-3.5 rounded-xl flex flex-col gap-2.5 justify-center">
+                        <h4 class="text-xs font-black text-accent uppercase tracking-wider mb-1">Vitendo vya Haraka</h4>
+                        <button class="bg-warning/20 text-warning hover:bg-warning/30 border border-warning/30 p-2.5 rounded-xl text-xs font-bold transition text-left" onclick="sendOrderCommand('Fuatili Maendeleo')">🔍 Fuatili Kazi Yangu</button>
+                        <button class="bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-500/30 p-2.5 rounded-xl text-xs font-bold transition text-left" onclick="sendOrderCommand('Agiza Mzigo wa Spare')">📦 Agiza Mzigo wa Spare</button>
+                        <button class="bg-gradient-to-r from-amber-500 to-red-500 text-white p-2.5 rounded-xl text-xs font-bold transition text-left shadow-md" onclick="sendOrderCommand('Boost Tangazo Langu')">🚀 Boost Tangazo Papo Hapo</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MATANGAZO LIVE -->
+            <div class="bg-bgDeep border border-borderCol p-5 sm:p-6 rounded-2xl shadow-xl space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-sm font-extrabold text-accent">📢 Matangazo ya Moja kwa Moja & Katalogi za Spares (Live Feed)</h2>
+                    <span class="text-[10px] text-textLight">Kutoka Firestore Database</span>
+                </div>
+                <div id="live-ads-container" class="space-y-4">
+                    <p class="text-xs text-textLight italic">Inatafuta matangazo yaliyopo hewani...</p>
+                </div>
+            </div>
+
+            <!-- KIKOKOTOO CHA BEI -->
+            <div class="bg-bgDeep border border-borderCol p-5 sm:p-6 rounded-2xl shadow-xl space-y-4">
+                <h2 class="text-sm font-extrabold text-accent">🧮 Kikokotoo cha Makisio ya Bei (Multi-Currency Converter)</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <div>
+                        <label class="block font-bold text-textLight mb-1">Sarafu (Currency)</label>
+                        <select class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent" id="est-currency" onchange="calculatePrice()">
+                            <option value="TZS" data-rate="1" data-symbol="TZS">TZS (Tsh)</option>
+                            <option value="USD" data-rate="0.00038" data-symbol="$">USD ($)</option>
+                            <option value="EUR" data-rate="0.00035" data-symbol="€">EUR (€)</option>
+                            <option value="KES" data-rate="0.050" data-symbol="KES">KES (Ksh)</option>
+                            <option value="CDF" data-rate="1.05" data-symbol="CDF">CDF (Fc)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-textLight mb-1">Brand & Modeli ya Simu</label>
+                        <select class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent" id="est-phone" onchange="calculatePrice()">
+                            <optgroup label="Tecno / Infinix">
+                                <option value="15000">Tecno Spark / Infinix Hot</option>
+                                <option value="25000">Tecno Camon / Infinix Note</option>
+                            </optgroup>
+                            <optgroup label="Samsung">
+                                <option value="30000">Samsung Galaxy A Series</option>
+                                <option value="60000">Samsung Galaxy S Series</option>
+                            </optgroup>
+                            <optgroup label="Apple iPhone">
+                                <option value="50000">iPhone 8 / X / 11</option>
+                                <option value="90000">iPhone 12 / 13 / 14 / 15</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-textLight mb-1">Tatizo la Simu</label>
+                        <select class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent" id="est-problem" onchange="calculatePrice()">
+                            <option value="25000">Kubadilisha Kioo (Screen Replacement)</option>
+                            <option value="15000">Kubadilisha Betri Halisi (Original Battery)</option>
+                            <option value="10000">Charging Port (Bandari ya Kuchaji)</option>
+                            <option value="20000">FRP / iCloud Lock Software</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="est-result" class="mt-4 p-3.5 bg-darkBg border border-borderCol rounded-xl text-center font-black text-accent text-sm shadow-inner">
+                    Makisio ya Bei: TZS 40,000
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. UKURASA WA POKEA SIMU -->
+        <section id="repair-tab" class="tab-content hidden space-y-4">
+            <div class="bg-bgDeep border border-borderCol p-6 rounded-2xl text-center space-y-2 shadow-xl">
+                <span class="bg-emerald-600 text-white text-[10px] font-black px-2.5 py-1 rounded uppercase">REPAIR DESK</span>
+                <h1 class="text-lg font-black text-white">📱 POKEA SIMU MPYA & WEKA USHAHIDI</h1>
+                <p class="text-xs text-textLight">Jaza taarifa za mteja, ambatisha picha halisi ya simu, na uhesabu malipo na chenji papo hapo</p>
+            </div>
+
+            <div class="bg-bgDeep border border-borderCol p-5 sm:p-6 rounded-2xl space-y-4 text-xs shadow-xl">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Jina la Mteja:</label>
+                        <input id="jina" type="text" placeholder="Andika jina la mteja..." class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Namba ya Simu:</label>
+                        <input id="namba" type="tel" placeholder="07xxxxxxxx..." class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Brand ya Kifaa:</label>
+                        <input id="brand" type="text" placeholder="Mf. Tecno, Samsung..." class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Modeli:</label>
+                        <input id="model" type="text" placeholder="Mf. Spark 20, A14..." class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">Tatizo la Simu:</label>
+                    <textarea id="tatizo" placeholder="Eleza tatizo la simu kiundani..." class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white h-24 focus:outline-none focus:border-accent"></textarea>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2.5 bg-darkBg p-3.5 rounded-xl border border-borderCol">
+                    <div>
+                        <label class="block text-[10px] font-bold text-textLight">Bei ya Kazi (Tsh)</label>
+                        <input id="bei" type="number" oninput="hesabuChenji()" placeholder="0" class="w-full bg-slate-900 border border-borderCol p-2.5 rounded-lg text-white mt-1 text-xs focus:outline-none focus:border-accent">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-textLight">Amelipa (Tsh)</label>
+                        <input id="amelipa" type="number" oninput="hesabuChenji()" placeholder="0" class="w-full bg-slate-900 border border-borderCol p-2.5 rounded-lg text-white mt-1 text-xs focus:outline-none focus:border-accent">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-textLight">Chenji (Tsh)</label>
+                        <input id="chenji" type="text" readonly placeholder="0" class="w-full bg-slate-900 border border-borderCol p-2.5 rounded-lg text-emerald-400 font-bold mt-1 text-xs">
+                    </div>
+                </div>
+
+                <div class="space-y-2 border border-borderCol p-4 rounded-xl bg-darkBg">
+                    <label class="block font-bold text-slate-300">📸 Picha ya Ushahidi wa Simu (Hali Halisi):</label>
+                    <input type="file" id="pichaSimu" accept="image/*" class="w-full text-slate-400 text-xs file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer">
+                    <div id="imagePreviewContainer" class="hidden mt-3 text-center">
+                        <img id="imgPreview" class="w-32 h-32 object-cover rounded-xl border border-borderCol mx-auto shadow-md">
+                    </div>
+                </div>
+
+                <button onclick="hifadhiSimuMpya()" class="w-full bg-accent hover:bg-emerald-600 text-white font-extrabold py-3.5 rounded-xl text-xs shadow-lg transition">💾 HIFADHI NA TUMA KWENYE MFUMO & FIREBASE</button>
+            </div>
+        </section>
+
+        <!-- 3. UKURASA WA SIMU ZANGU & RISITI ZA QR -->
+        <section id="phones-tab" class="tab-content hidden space-y-4">
+            <div class="bg-bgDeep border border-borderCol p-5 rounded-2xl text-center space-y-1 shadow-xl">
+                <h1 class="text-lg font-black text-white">📋 SIMU ZANGU & RISITI ZA KIPROFESHENI</h1>
+                <p class="text-xs text-textLight">Simamia kazi zote, badilisha hali (status), na chapisha risiti rasmi zenye QR Code</p>
+            </div>
+
+            <div class="bg-bgDeep border border-borderCol p-3.5 rounded-xl shadow-md">
+                <input type="text" id="tafutaSimu" oninput="tafutaSimuKatikaOrodha()" placeholder="🔍 Tafuta simu kwa jina la mteja, namba, brand au model..." class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-xs text-white focus:outline-none focus:border-accent">
+            </div>
+
+            <div class="bg-bgDeep border border-borderCol p-4 rounded-xl grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center text-xs shadow-md">
+                <div class="bg-darkBg p-3 rounded-xl border border-borderCol">📱 Jumla: <b id="jumlaSimu" class="text-white text-sm">0</b></div>
+                <div class="bg-darkBg p-3 rounded-xl border border-borderCol">🟡 Imepokelewa: <b id="imepokelewa" class="text-amber-400 text-sm">0</b></div>
+                <div class="bg-darkBg p-3 rounded-xl border border-borderCol">🔵 Inatengenezwa: <b id="inatengenezwa" class="text-blue-400 text-sm">0</b></div>
+                <div class="bg-darkBg p-3 rounded-xl border border-borderCol">🟢 Imekamilika: <b id="imekamilika" class="text-emerald-400 text-sm">0</b></div>
+            </div>
+
+            <div id="orodhaSimuContainer" class="space-y-3"></div>
+        </section>
+
+        <!-- 4. SOS & JUKWAA LA MAFUNDI -->
+        <section id="tech-hub-tab" class="tab-content hidden space-y-4">
+            <div class="bg-bgDeep border border-borderCol p-5 sm:p-6 rounded-2xl shadow-xl space-y-3">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-sm font-extrabold text-accent flex items-center gap-2"><span>🚨</span> SOS Technical Support & Jukwaa la Mafundi</h2>
+                    <span class="text-[10px] bg-blue-500/20 text-blue-400 px-2.5 py-0.5 rounded font-bold">Global Hub</span>
+                </div>
+                <p class="text-xs text-textLight">Pata msaada wa kiufundi wa haraka (Schematics, jumper ways, FRP bypass) kutoka kwa wataalamu wenzako duniani kote.</p>
+                
+                <div class="chat-box bg-darkBg border border-borderCol p-3.5 rounded-xl" id="community-box">
+                    <div class="msg incoming">
+                        <b>Fundi Baraka (Master):</b> Wakuu nimeambatanisha schematic PDF ya Tecno Spark na njia za jumper ya charging hapa chini.
+                        <div class="media-preview-tag">📄 Tecno_Spark_Schematics_Jumper.pdf (2.8 MB)</div>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-xs text-white focus:outline-none focus:border-accent" id="comm-input" placeholder="Andika ujumbe au maujanja ya kiufundi...">
+                    <button class="bg-accent hover:bg-emerald-600 text-white font-bold px-5 py-3 rounded-xl text-xs transition shadow-lg" onclick="sendCommunityMsg()">Chapisha</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. WATEJA & UJUMBE (CRM) -->
+        <section id="wateja-tab" class="tab-content hidden space-y-4">
+            <div class="bg-bgDeep border border-borderCol p-5 sm:p-6 rounded-2xl shadow-xl space-y-3">
+                <h3 class="text-xs font-black text-accent uppercase tracking-wider">➕ Sajili Mteja Mpya Kwenye Hifadhi (CRM)</h3>
+                <div class="space-y-3 text-xs">
+                    <input type="text" id="clientName" placeholder="Jina Kamili la Mteja" class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent">
+                    <input type="text" id="clientPhone" placeholder="Namba ya Simu ya Mawasiliano" class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent">
+                    <input type="text" id="clientDevice" placeholder="Aina ya Kifaa / Model" class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent">
+                    <button onclick="ongezaMteja()" class="w-full bg-accent hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition shadow-lg">Hifadhi Mteja Kwenye Mfumo</button>
+                </div>
+            </div>
+            <div class="bg-bgDeep border border-borderCol p-5 sm:p-6 rounded-2xl shadow-xl space-y-3">
+                <h3 class="text-xs font-black text-accent uppercase tracking-wider">👥 Orodha ya Wateja Wako</h3>
+                <div id="clientContainer" class="space-y-2"></div>
+            </div>
+        </section>
+
+        <!-- 6. WEKA TANGAZO & MALIPO -->
+        <section id="ads-tab" class="tab-content hidden space-y-4">
+            <div class="bg-bgDeep border border-borderCol p-5 sm:p-6 rounded-2xl shadow-xl space-y-4 text-xs">
+                <h2 class="text-sm font-extrabold text-accent">📢 Weka Tangazo la Biashara Yako au Vifaa/Spares (Video/Picha)</h2>
+                <input type="text" id="adStoreName" class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent" placeholder="Jina la Duka / Biashara">
+                <input type="text" id="adPhone" class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent" placeholder="Namba ya Simu ya Biashara">
+                <textarea id="adDescription" class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white h-36 focus:outline-none focus:border-accent" placeholder="Eleza bidhaa, vipuri, au huduma unazotoa..."></textarea>
+                
+                <label for="ad-media-file" class="block cursor-pointer text-center bg-darkBg border border-dashed border-borderCol p-6 rounded-xl text-textLight hover:border-accent transition">
+                    📁 Bonyeza hapa kuchagua picha au video ya tangazo lako (Sehemu ya kuonyesha imepanuliwa)
+                </label>
+                <input type="file" id="ad-media-file" accept="image/*,video/*,.pdf" class="hidden" onchange="handleAdFileSelected(event)">
+
+                <div id="ad-preview-box" class="preview-container">
+                    <div class="flex items-center gap-2.5 overflow-hidden">
+                        <div id="ad-thumb-container"></div>
+                        <div id="ad-file-name" class="text-xs text-white truncate font-medium">Faili Teule</div>
+                    </div>
+                    <button class="bg-red-600 text-white px-2.5 py-1 rounded text-[10px] font-bold hover:bg-red-700" onclick="cancelAdPreview()">Futa</button>
+                </div>
+
+                <div class="bg-darkBg border border-borderCol p-4 rounded-xl space-y-3 mt-4">
+                    <h3 class="font-bold text-accent text-xs uppercase tracking-wider">💳 Uthibitisho wa Malipo ya Usajili au Tangazo</h3>
+                    <input type="text" id="malipoJina" placeholder="Jina lako kamili au la duka..." class="w-full bg-slate-900 border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent">
+                    <input type="text" id="malipoNamba" placeholder="Namba ya simu uliyolipa..." class="w-full bg-slate-900 border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent">
+                    <input type="text" id="malipoTransId" placeholder="Transaction ID / Kumbukumbu Namba..." class="w-full bg-slate-900 border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent">
+                    <select id="ainaYaMalipo" class="w-full bg-slate-900 border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent">
+                        <option value="Usajili wa Fundi">Usajili wa Mwezi (Fundi Pro)</option>
+                        <option value="Tangazo la Spare">Ada ya Tangazo la Spare (Featured Ad)</option>
+                    </select>
+                    <button onclick="tumaUthibitishoWaMalipo()" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl transition shadow-md">Tuma Uthibitisho kwa Admin Mkuu</button>
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button onclick="wasilishaTangazoFirebase()" class="w-full bg-accent hover:bg-emerald-600 text-white font-extrabold py-3.5 rounded-xl transition shadow-lg">Wasilisha Tangazo Hewani</button>
+                    <button onclick="boostTangazoLangu()" class="w-full bg-gradient-to-r from-amber-500 to-red-500 hover:opacity-90 text-white font-extrabold py-3.5 rounded-xl transition shadow-lg">🚀 Boost Papo Hapo</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. ZANA 10 ZA JUU ZA KUONGEZEA NGUVU -->
+        <section id="tools-tab" class="tab-content hidden space-y-4">
+            <div class="bg-bgDeep border border-borderCol p-6 rounded-2xl shadow-xl space-y-4">
+                <h2 class="text-base font-black text-accent">🛠️ Zana 10 za Kimkakati za Kuongezea Nguvu Kwenye Mfumo (Pro Toolkit)</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
+                        <b class="text-white">1. Uzalishaji Risiti za QR Code</b>
+                        <p class="text-[10px] text-textLight">Uzalishaji wa risiti rasmi zenye namba za kipekee na miundo ya kuchapisha (Print ready).</p>
+                    </div>
+                    <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
+                        <b class="text-white">2. Takwimu za Moja kwa Moja za Mapato</b>
+                        <p class="text-[10px] text-textLight">Uchambuzi wa mapato ya kila kazi, hesabu za faida na uwiano wa fedha.</p>
+                    </div>
+                    <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
+                        <b class="text-white">3. Ulinzi wa Usalama (Anti-Scam Guard)</b>
+                        <p class="text-[10px] text-textLight">Tahadhari za kiotomatiki kwa wateja na mafundi ili kuepuka ulaghai wa kifedha.</p>
+                    </div>
+                    <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
+                        <b class="text-white">4. Kikokotoo cha Sarafu Nyingi (Multi-Currency)</b>
+                        <p class="text-[10px] text-textLight">Kubadilisha bei za matengenezo kwenda TZS, USD, EUR, KES, na CDF kwa urahisi.</p>
+                    </div>
+                    <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
+                        <b class="text-white">5. Usimamizi wa Hali ya Kazi (Status Workflow)</b>
+                        <p class="text-[10px] text-textLight">Kufuatilia hatua zote za simu kuanzia Imepokelewa, Inatengenezwa, hadi Imekamilika.</p>
+                    </div>
+                    <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
+                        <b class="text-white">6. Jukwaa la SOS la Kimataifa (Technicians Hub)</b>
+                        <p class="text-[10px] text-textLight">Kushirikiana faili za schematics, miongozo na suluhu za kiufundi duniani.</p>
+                    </div>
+                    <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
+                        <b class="text-white">7. Udhibiti wa Viwango vya Matumizi (RBAC)</b>
+                        <p class="text-[10px] text-textLight">Sehemu maalum zilizotengわれる kwa ajili ya Mteja, Mfanyabiashara, Fundi, na Admin Mkuu.</p>
+                    </div>
+                    <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
+                        <b class="text-white">8. Mfumo wa Neno la Siri & PIN Recovery</b>
+                        <p class="text-[10px] text-textLight">Uwezo wa kuhakiki, kurejesha au kubadilisha PIN na nenosiri kupitia Admin.</p>
+                    </div>
+                    <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
+                        <b class="text-white">9. Matangazo ya Video & Vifungo Shirikishi</b>
+                        <p class="text-[10px] text-textLight">Kuweka video, picha, kitufe cha Naipenda ❤️, Gawia 🔗 na Piga Simu 📞.</p>
+                    </div>
+                    <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
+                        <b class="text-white">10. Firebase Realtime Cloud Synchronization</b>
+                        <p class="text-[10px] text-textLight">Usawazishaji wa data zote kupitia Firestore na Realtime Database salama.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. ADMIN DASHBOARD -->
+        <section id="admin-tab" class="tab-content hidden space-y-4">
+            <div class="bg-bgDeep border border-borderCol p-5 sm:p-6 rounded-2xl shadow-xl space-y-4 text-xs">
+                <div class="flex justify-between items-center border-b border-borderCol pb-3">
+                    <h2 class="text-sm font-extrabold text-accent">⚙️ Dashibodi Kuu ya Usimamizi (Master Admin Hub)</h2>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400">PIN 7777 Secured</span>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                    <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol">
+                        <h3 id="adminTotalPhones" class="text-base font-black text-white">0</h3>
+                        <p class="text-textLight text-[10px] mt-0.5">Jumla ya Simu</p>
+                    </div>
+                    <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol">
+                        <h3 id="adminTotalRequests" class="text-base font-black text-blue-400">0</h3>
+                        <p class="text-textLight text-[10px] mt-0.5">Maombi ya Wateja</p>
+                    </div>
+                    <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol">
+                        <h3 id="adminTotalAds" class="text-base font-black text-warning">0</h3>
+                        <p class="text-textLight text-[10px] mt-0.5">Matangazo ya Spares</p>
+                    </div>
+                    <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol">
+                        <h3 id="adminTotalRevenue" class="text-base font-black text-emerald-400">Tsh 0</h3>
+                        <p class="text-textLight text-[10px] mt-0.5">Makadirio ya Mapato</p>
+                    </div>
+                </div>
+
+                <div class="space-y-2 pt-2 border-t border-borderCol">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-accent uppercase tracking-wider text-[11px]">📋 Udhibiti wa Maombi ya Wateja & Auto-Cleanup</h3>
+                        <button onclick="bulkDeleteCustomerRequests()" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 px-3 py-1 rounded-lg text-[10px] font-bold transition">🗑️ Futa Zote (Bulk Delete)</button>
+                    </div>
+                    <div id="adminCustomerRequestsList" class="space-y-2 max-h-40 overflow-y-auto">
+                        <p class="text-textLight italic">Inapakia maombi ya wateja...</p>
+                    </div>
+                </div>
+
+                <div class="space-y-2 pt-2 border-t border-borderCol">
+                    <h3 class="font-bold text-accent uppercase tracking-wider text-[11px]">🛡️ Usimamizi wa Mafundi na Hali ya Malipo</h3>
+                    <div id="adminTechniciansList" class="space-y-2 max-h-40 overflow-y-auto">
+                        <div class="bg-darkBg p-3 rounded-xl border border-borderCol flex justify-between items-center text-xs">
+                            <div>
+                                <b class="text-white">Fundi Baraka</b>
+                                <p class="text-[10px] text-textLight">Hali: <span id="fundiStatus-1" class="text-emerald-400 font-bold">Hai (Active)</span></p>
+                            </div>
+                            <button onclick="toggleFundiBan(1)" id="fundiBtn-1" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg text-[10px] font-bold transition">Zuia (Ban)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2 pt-2 border-t border-borderCol">
+                    <h3 class="font-bold text-accent uppercase tracking-wider text-[11px]">📢 Ukaguzi na Udhibiti wa Matangazo ya Spares</h3>
+                    <div id="adminAdsApprovalList" class="space-y-2 max-h-48 overflow-y-auto">
+                        <p class="text-textLight italic">Inatafuta matangazo yanayosubiri uhakiki...</p>
+                    </div>
+                </div>
+
+                <div class="space-y-2 pt-2 border-t border-borderCol">
+                    <h3 class="font-bold text-accent uppercase tracking-wider text-[11px]">💳 Mipangilio ya Malipo (Payment Gateways)</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div>
+                            <label class="block text-[10px] text-textLight mb-1">Vodacom M-Pesa</label>
+                            <input type="text" id="gatewayVodacom" value="0755 000 000" class="w-full bg-darkBg border border-borderCol p-2.5 rounded-xl text-white text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-textLight mb-1">Airtel Money</label>
+                            <input type="text" id="gatewayAirtel" value="0788 000 000" class="w-full bg-darkBg border border-borderCol p-2.5 rounded-xl text-white text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-textLight mb-1">Tigo Pesa / HaloPesa</label>
+                            <input type="text" id="gatewayTigo" value="0655 000 000" class="w-full bg-darkBg border border-borderCol p-2.5 rounded-xl text-white text-xs">
+                        </div>
+                    </div>
+                    <button onclick="savePaymentGateways()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs transition border border-borderCol">Hifadhi Namba za Malipo</button>
+                </div>
+
+                <div class="space-y-2 pt-2 border-t border-borderCol">
+                    <h3 class="font-bold text-accent uppercase tracking-wider text-[11px]">📢 Arifa za Pamoja (Broadcast) & Sheria (CMS)</h3>
+                    <textarea id="broadcastMsgInput" placeholder="Andika ujumbe wa dharura au tangazo la pamoja kwa watumiaji wote..." class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white h-20 text-xs focus:outline-none focus:border-accent"></textarea>
+                    <button onclick="sendBroadcastAlert()" class="w-full bg-accent hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs transition">Tuma Broadcast kwa Wote Papo Hapo</button>
+                </div>
+
+                <div class="space-y-3 pt-2 border-t border-borderCol">
+                    <h3 class="font-bold text-accent uppercase tracking-wider text-[11px]">💾 Hifadhi Nakala (Backup JSON) & Make Webhook (ByaoIA)</h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="makeWebhookUrlInput" placeholder="Weka Make Webhook URL..." class="w-full bg-darkBg border border-borderCol p-2.5 rounded-xl text-xs focus:outline-none focus:border-accent text-white">
+                        <button onclick="testAndSaveWebhook()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs whitespace-nowrap transition">Jaribu & Hifadhi</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="downloadJsonBackup()" class="w-full bg-darkBg hover:bg-slate-800 text-white border border-borderCol font-bold py-2.5 rounded-xl text-xs transition">📥 Pakua Backup (JSON)</button>
+                        <button onclick="futaDataZote()" class="w-full bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 font-bold py-2.5 rounded-xl text-xs transition">🗑️ Futa Kumbukumbu Zote</button>
+                    </div>
+                </div>
+
+                <div class="space-y-2 pt-2 border-t border-borderCol">
+                    <h3 class="font-bold text-accent uppercase tracking-wider text-[11px]">💳 Uthibitisho wa Malipo Yaliyotumwa na Mafundi:</h3>
+                    <div id="adminMalipoList" class="space-y-2 max-h-48 overflow-y-auto">
+                        <p class="text-textLight italic">Inapakia orodha ya malipo kutoka mtandaoni...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL YA RISITI RASMI -->
+    <div id="receiptModal" class="fixed inset-0 bg-black/80 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white text-slate-900 w-full max-w-sm p-6 rounded-2xl shadow-2xl space-y-4 text-xs relative font-sans">
+            <div class="text-center space-y-1 border-b border-dashed border-slate-300 pb-3">
+                <h2 class="font-black text-sm uppercase tracking-wider">BYAO MOBILE SOLUTIONS PRO</h2>
+                <p class="text-[10px] text-slate-500 font-medium">Ukarabati wa Simu, Vioo na Huduma za Kiteknolojia</p>
+                <p class="text-[10px] font-bold text-emerald-700 bg-emerald-50 py-0.5 px-2 rounded inline-block mt-1">RISITI RASMI YA MALIPO / OFFICIAL RECEIPT</p>
+            </div>
+            <div id="receiptContent" class="space-y-2 text-slate-700"></div>
+            <div class="border-t border-dashed border-slate-300 pt-3 text-center space-y-1">
+                <div class="inline-block p-2 bg-slate-100 rounded-lg border border-slate-200">
+                    <div class="text-[9px] font-bold text-slate-600">QR CODE VERIFIED ✅</div>
+                    <div class="text-[8px] text-slate-400">BYAO SECURE PROTOCOL 2026</div>
+                </div>
+                <p class="text-[10px] text-slate-500 font-medium mt-1">Asante kwa kuchagua huduma zetu bora!</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button onclick="window.print()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl transition">🖨️ Chapisha Risiti</button>
+                <button onclick="fungaRisiti()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl transition">Funga</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center text-textLight text-[10px] mt-8 py-4 border-t border-borderCol">
+        &copy; 2026 Byao Mobile Solution Enterprise. Haki zote zimehifadhiwa kikamilifu.
+    </footer>
+
+    <!-- JS LOGIC YOTE KAMILI NA SALAMA -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "API_KEY_YAKO",
+            authDomain: "PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://byaomobilesolutions-default-rtdb.firebaseio.com/",
+            projectId: "PROJECT_ID",
+            storageBucket: "PROJECT_ID.appspot.com",
+            messagingSenderId: "MESSAGING_ID",
+            appId: "APP_ID"
+        };
+        
+        let db, auth;
+        try {
+            if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+            db = firebase.database();
+            auth = firebase.auth();
+        } catch (error) {
+            console.error("Firebase init error:", error);
+        }
+
+        let simuZote = JSON.parse(localStorage.getItem("simuZote")) || [];
+        let clientsList = JSON.parse(localStorage.getItem('byao_clients') || '[]');
+        
+        let mafundiRegistered = JSON.parse(localStorage.getItem("mafundiRegistered")) || [
+            { name: "Fundi Baraka", location: "Kariakoo", details: "Ukarabati wa Vioo, IC, Flash & FRP", phone: "0711000001" },
+            { name: "Fundi Jean Paul", location: "Goma", details: "Specialist wa Bwawa la Umeme na Hard Reset", phone: "0990000002" },
+            { name: "Fundi Juma Mwanza", location: "Mwanza", details: "Ubadilishaji wa Betri na Vioo vya Tecno/Infinix", phone: "0755000003" },
+            { name: "Fundi Kelvin Nairobi", location: "Nairobi", details: "iPhone Unlock & iCloud Bypass Expert", phone: "0722000004" }
+        ];
+
+        let base64ImageString = "";
+        let selectedFileObject = null;
+        let selectedFileType = '';
+        let selectedAdFileObject = null;
+        let storedAdBase64 = "";
+        let isRecording = false;
+
+        window.onload = function() {
+            let ameLogin = localStorage.getItem("byaoLogin");
+            if(ameLogin !== "ndiyo") {
+                document.getElementById('loginScreen').classList.remove('hidden');
+            } else {
+                checkMasterAdminStealth();
+                renderSidebarByRole();
+            }
+
+            document.getElementById('loginRole').addEventListener('change', function() {
+                let roleVal = this.value;
+                let locContainer = document.getElementById('loginLocationContainer');
+                if(roleVal === 'Fundi' || roleVal === 'Mfanyabiashara') {
+                    locContainer.classList.remove('hidden');
+                } else {
+                    locContainer.classList.add('hidden');
+                }
+            });
+
+            const urlParams = new URLSearchParams(window.location.search);
+            let dukaFromUrl = urlParams.get('duka');
+            let simuFromUrl = urlParams.get('simu');
+
+            if (dukaFromUrl) localStorage.setItem("dukaJina", decodeURIComponent(dukaFromUrl));
+            if (simuFromUrl) localStorage.setItem("biasharaSimu", decodeURIComponent(simuFromUrl));
+
+            let duka = localStorage.getItem("dukaJina") || "Byao Mfanyabiashara Pro";
+            let simu = localStorage.getItem("biasharaSimu") || "0700000000";
+            
+            document.getElementById("portalTitle").innerText = duka;
+            document.getElementById("walletDisplay").innerText = "🏪 Duka: " + duka;
+            document.getElementById("dukaBannerTitle").innerText = "Karibu kwenye Duka lako la " + duka + "!";
+            document.getElementById("adStoreName").value = duka;
+            document.getElementById("adPhone").value = simu;
+            
+            calculatePrice();
+            loadApprovedLiveAds();
+            onyeshaSimu();
+            onyeshaWateja();
+            loadAdminMalipo();
+        };
+
+        function checkMasterAdminStealth() {
+            let role = localStorage.getItem("byaoRole");
+            let dot = document.getElementById("masterStatusDot");
+            if(role === "Admin") {
+                if(dot) dot.classList.remove("hidden");
+            } else {
+                if(dot) dot.classList.add("hidden");
+            }
+        }
+
+        function renderSidebarByRole() {
+            let role = localStorage.getItem("byaoRole") || "Mteja";
+            let menuContainer = document.getElementById("sidebarMenuContainer");
+            if(!menuContainer) return;
+
+            let html = '';
+
+            if(role === "Mteja") {
+                html += `
+                    <button onclick="badiliUkurasa('dashboard-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">🏠 Mwanzo, Makisio & Utafutaji wa Eneo</button>
+                    <button onclick="badiliUkurasa('ads-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">📢 Matangazo ya Moja kwa Moja</button>
+                    <button onclick="badiliUkurasa('tools-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">🛠️ Zana za Mfumo</button>
+                `;
+            } 
+            else if(role === "Fundi") {
+                html += `
+                    <button onclick="badiliUkurasa('repair-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">📱 Pokea Simu, Ushahidi & Chenji</button>
+                    <button onclick="badiliUkurasa('phones-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">📋 Orodha ya Simu & Risiti za QR</button>
+                    <button onclick="badiliUkurasa('dashboard-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">🏠 Mwanzo & Utafutaji</button>
+                    <button onclick="badiliUkurasa('tech-hub-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">🚨 SOS & Jukwaa la Mafundi Duniani</button>
+                    <button onclick="badiliUkurasa('tools-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">🛠️ Zana za Ufundi</button>
+                `;
+            }
+            else if(role === "Mfanyabiashara") {
+                html += `
+                    <button onclick="badiliUkurasa('ads-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">📢 Kujaza Matangazo ya Spares & Malipo</button>
+                    <button onclick="badiliUkurasa('repair-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">📱 Pokea Simu & Risiti</button>
+                    <button onclick="badiliUkurasa('phones-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">📋 Orodha ya Simu & QR</button>
+                    <button onclick="badiliUkurasa('dashboard-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">🏠 Mwanzo & Makisio</button>
+                    <button onclick="badiliUkurasa('tools-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">🛠️ Takwimu na Zana za Biashara</button>
+                `;
+            }
+            else if(role === "Admin") {
+                html += `
+                    <button onclick="badiliUkurasa('admin-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl bg-emerald-950/40 text-emerald-400 font-bold border border-emerald-500/30 transition">⚙️ Dashibodi Kuu (Master Admin)</button>
+                    <button onclick="badiliUkurasa('repair-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">📱 Pokea Simu</button>
+                    <button onclick="badiliUkurasa('phones-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">📋 Orodha ya Simu</button>
+                    <button onclick="badiliUkurasa('dashboard-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">🏠 Mwanzo & Utafutaji</button>
+                    <button onclick="badiliUkurasa('tech-hub-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">🚨 SOS & Mafundi Hub</button>
+                    <button onclick="badiliUkurasa('wateja-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">👥 Wateja & CRM</button>
+                    <button onclick="badiliUkurasa('ads-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">📢 Matangazo & Malipo</button>
+                    <button onclick="badiliUkurasa('tools-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">🛠️ Zana 10 za Juu</button>
+                `;
+            }
+
+            html += `<button onclick="logoutBYAO()" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-red-950/50 text-red-400 transition border-t border-borderCol mt-3">🚪 Toka Kwenye Mfumo (Logout)</button>`;
+            menuContainer.innerHTML = html;
+        }
+
+        function fanyaLogin() {
+            let role = document.getElementById("loginRole").value;
+            let jina = document.getElementById("loginJina").value.trim();
+            let pass = document.getElementById("loginPass").value.trim();
+            let locationElem = document.getElementById("loginLocation");
+            let eneoLako = locationElem ? locationElem.value : "Kariakoo";
+
+            if(!jina) { return; }
+            if(role === "Admin" && pass !== "7777" && pass !== "byao2026") {
+                return;
+            }
+            if(!pass) { return; }
+
+            localStorage.setItem("byaoLogin", "ndiyo");
+            localStorage.setItem("byaoRole", role);
+            localStorage.setItem("dukaJina", jina);
+            localStorage.setItem("userLocation", eneoLako);
+
+            if(role === "Fundi" || role === "Mfanyabiashara") {
+                let mpyaFundi = { name: jina, location: eneoLako, details: "Fundi Mtaalamu / Duka Rasmi", phone: "0700000000" };
+                mafundiRegistered.push(mpyaFundi);
+                localStorage.setItem("mafundiRegistered", JSON.stringify(mafundiRegistered));
+            }
+
+            checkMasterAdminStealth();
+            renderSidebarByRole();
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById("portalTitle").innerText = jina;
+            document.getElementById("walletDisplay").innerText = "🏪 " + role + ": " + jina;
+
+            if(role === "Mfanyabiashara") {
+                badiliUkurasa('ads-tab');
+            } else if(role === "Fundi") {
+                badiliUkurasa('repair-tab');
+            } else if(role === "Admin") {
+                badiliUkurasa('admin-tab');
+            } else {
+                badiliUkurasa('dashboard-tab');
+            }
+        }
+
+        function ombiaPinMpya() {
+            let jinaWasilisho = prompt("Weka namba yako ya simu au barua pepe ya usajili ili kutumiwa PIN mpya:");
+        }
+
+        function logoutBYAO() {
+            if(confirm("Una uhakika unataka kutoka kwenye mfumo rasmi?")) {
+                localStorage.removeItem("byaoLogin");
+                localStorage.removeItem("byaoRole");
+                location.reload();
+            }
+        }
+
+        function badiliUkurasa(tabId) {
+            let role = localStorage.getItem("byaoRole") || "Mteja";
+            
+            if(tabId === 'admin-tab' && role !== 'Admin') {
+                return;
+            }
+
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+            document.getElementById('overlay').classList.add('hidden');
+            window.scrollTo(0, 0);
+
+            if(tabId === 'phones-tab') onyeshaSimu();
+            if(tabId === 'wateja-tab') onyeshaWateja();
+            if(tabId === 'admin-tab') { hesabuAdmin(); loadAdminMalipo(); loadAdminDashboardExtended(); }
+        }
+
+        function calculatePrice() {
+            const phoneVal = parseFloat(document.getElementById('est-phone').value) || 0;
+            const probVal = parseFloat(document.getElementById('est-problem').value) || 0;
+            const baseAmountTZS = phoneVal + probVal;
+
+            const currencySelect = document.getElementById('est-currency');
+            const selectedOption = currencySelect.options[currencySelect.selectedIndex];
+            const rate = parseFloat(selectedOption.getAttribute('data-rate')) || 1;
+            const symbol = selectedOption.getAttribute('data-symbol') || 'TZS';
+
+            const convertedAmount = baseAmountTZS * rate;
+            let formattedNumber = convertedAmount.toLocaleString(undefined, { 
+                minimumFractionDigits: symbol === 'TZS' || symbol === 'CDF' ? 0 : 2,
+                maximumFractionDigits: symbol === 'TZS' || symbol === 'CDF' ? 0 : 2 
+            });
+
+            document.getElementById('est-result').innerText = `Makisio ya Bei: ${symbol} ${formattedNumber}`;
+        }
+
+        function searchTechs() {
+            const selectedLocation = document.getElementById('user-location').value;
+            if(!selectedLocation) { return; }
+            
+            document.getElementById('tech-results').classList.remove('hidden');
+            let listContainer = document.getElementById('tech-list-filtered');
+            listContainer.innerHTML = '';
+
+            let filteredTechs = mafundiRegistered.filter(f => f.location.toLowerCase() === selectedLocation.toLowerCase());
+
+            if(filteredTechs.length === 0) {
+                listContainer.innerHTML = `<div class="bg-darkBg p-3.5 rounded-xl border border-borderCol text-xs text-textLight italic">Hakuna mafundi waliopatikana kwenye eneo la ${selectedLocation} kwa sasa.</div>`;
+                return;
+            }
+
+            filteredTechs.forEach(fundi => {
+                listContainer.innerHTML += `
+                    <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol flex justify-between items-center text-xs">
+                        <div>
+                            <b class="text-white">${fundi.name} (${fundi.location})</b>
+                            <p class="text-[10px] text-textLight mt-0.5">${fundi.details} | Simu: ${fundi.phone}</p>
+                        </div>
+                        <button class="bg-accent hover:bg-emerald-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition" onclick="openChat('${fundi.name}')">Wasiliana</button>
+                    </div>
+                `;
+            });
+        }
+
+        function openChat(techName) {
+            document.getElementById('chat-section').classList.remove('hidden');
+            document.getElementById('chat-title').innerText = 'Mazungumzo na ' + techName;
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        function sendOrderCommand(cmd) {
+            const box = document.getElementById('chat-messages');
+            box.innerHTML += `<div class="msg outgoing"><b>Amri ya Mfumo:</b> ${cmd}</div>`;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function boostTangazoLangu() {
+            // No alerts
+        }
+
+        function toggleVoiceRecording() {
+            const btn = document.getElementById('voiceRecordBtn');
+            const box = document.getElementById('chat-messages');
+            if(!isRecording) {
+                isRecording = true;
+                btn.classList.add('bg-red-600', 'text-white');
+            } else {
+                isRecording = false;
+                btn.classList.remove('bg-red-600', 'text-white');
+                box.innerHTML += `<div class="msg outgoing">🎤 <b>Voice Note:</b><br><audio controls src="" class="mt-1 w-full"></audio></div>`;
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+
+        document.getElementById('pichaSimu').addEventListener('change', function(e) {
+            let file = e.target.files[0];
+            if(file) {
+                let reader = new FileReader();
+                reader.onload = function(event) {
+                    base64ImageString = event.target.result;
+                    let preview = document.getElementById('imgPreview');
+                    preview.src = base64ImageString;
+                    document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function hesabuChenji() {
+            let bei = parseFloat(document.getElementById('bei').value) || 0;
+            let amelipa = parseFloat(document.getElementById('amelipa').value) || 0;
+            let chenji = amelipa - bei;
+            document.getElementById('chenji').value = chenji >= 0 ? "Tsh " + chenji.toLocaleString() : "Hairidhi (Kuna Deni)";
+        }
+
+        function hifadhiSimuMpya() {
+            let jina = document.getElementById("jina").value.trim();
+            let namba = document.getElementById("namba").value.trim();
+            let brand = document.getElementById("brand").value.trim();
+            let model = document.getElementById("model").value.trim();
+            let bei = parseFloat(document.getElementById("bei").value) || 0;
+            let amelipa = parseFloat(document.getElementById("amelipa").value) || 0;
+            let tatizo = document.getElementById("tatizo").value.trim();
+
+            if(!jina || !namba || !tatizo) {
+                return;
+            }
+
+            let mpya = {
+                id: "BYAO-" + Math.floor(100000 + Math.random() * 900000),
+                jina, namba, brand, model, bei, amelipa, tatizo,
+                picha: base64ImageString,
+                status: "Imepokelewa",
+                tarehe: new Date().toLocaleDateString()
+            };
+
+            simuZote.unshift(mpya);
+            localStorage.setItem("simuZote", JSON.stringify(simuZote));
+
+            if(db) {
+                db.ref("maombiWateja").push(mpya).then(() => {}).catch(() => {});
+            }
+
+            document.getElementById("jina").value = "";
+            document.getElementById("namba").value = "";
+            document.getElementById("brand").value = "";
+            document.getElementById("model").value = "";
+            document.getElementById("bei").value = "";
+            document.getElementById("amelipa").value = "";
+            document.getElementById("chenji").value = "";
+            document.getElementById("tatizo").value = "";
+            document.getElementById("pichaSimu").value = "";
+            document.getElementById("imagePreviewContainer").classList.add("hidden");
+            base64ImageString = "";
+            badiliUkurasa('phones-tab');
+        }
+
+        function onyeshaSimu(data = simuZote) {
+            let container = document.getElementById("orodhaSimuContainer");
+            if(!container) return;
+            container.innerHTML = "";
+            if(data.length === 0) {
+                container.innerHTML = `<div class="bg-bgDeep border border-borderCol p-6 rounded-2xl text-center"><h3 class="text-xs font-bold text-white">📱 Hakuna simu zilizopokelewa bado</h3></div>`;
+                hesabuTakwimu(data);
+                return;
+            }
+
+            data.forEach(function(simu) {
+                let indexHalisi = simuZote.indexOf(simu);
+                let pichaHtml = simu.picha ? `<div class="mt-2"><img src="${simu.picha}" class="w-20 h-20 object-cover rounded-xl border border-borderCol shadow-sm"></div>` : '';
+                
+                container.innerHTML += `
+                    <div class="bg-bgDeep border border-borderCol p-4 rounded-2xl shadow-xl space-y-2.5 text-xs">
+                        <div class="flex items-center justify-between border-b border-borderCol pb-2">
+                            <h3 class="font-extrabold text-white text-sm">📱 ${simu.brand || 'Kifaa'} ${simu.model || ''}</h3>
+                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-darkBg text-slate-300 border border-borderCol shadow-xs">${simu.status}</span>
+                        </div>
+                        <div class="space-y-1 text-slate-300">
+                            <p>👤 <b>Mteja:</b> ${simu.jina}</p>
+                            <p>📞 <b>Namba:</b> ${simu.namba}</p>
+                            <p>⚠️ <b>Tatizo:</b> ${simu.tatizo}</p>
+                            <p>💰 <b>Bei ya Kazi:</b> Tsh ${simu.bei} | <b>Amelipa:</b> Tsh ${simu.amelipa || 0}</p>
+                            <p>📅 <b>Tarehe:</b> ${simu.tarehe} | <b class="text-accent">#${simu.id}</b></p>
+                            ${pichaHtml}
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 pt-2">
+                            <button onclick="badiliStatus(${indexHalisi})" class="bg-darkBg hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl border border-borderCol transition">🔄 Badili Hali</button>
+                            <button onclick="funguaRisiti(${indexHalisi})" class="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 font-bold py-2.5 rounded-xl border border-emerald-500/30 transition">📄 Risiti ya QR</button>
+                            <button onclick="futaSimu(${indexHalisi})" class="bg-red-600/20 text-red-400 hover:bg-red-600/30 font-bold py-2.5 rounded-xl border border-red-500/30 transition">🗑️ Futa</button>
+                        </div>
+                    </div>
+                `;
+            });
+            hesabuTakwimu(data);
+        }
+
+        function hesabuTakwimu(data) {
+            document.getElementById("jumlaSimu").innerText = data.length;
+            document.getElementById("imepokelewa").innerText = data.filter(s => s.status === "Imepokelewa").length;
+            document.getElementById("inatengenezwa").innerText = data.filter(s => s.status === "Inatengenezwa").length;
+            document.getElementById("imekamilika").innerText = data.filter(s => s.status === "Imekamilika").length;
+        }
+
+        function badiliStatus(index) {
+            let simu = simuZote[index];
+            if(simu.status === "Imepokelewa") simu.status = "Inatengenezwa";
+            else if(simu.status === "Inatengenezwa") simu.status = "Imekamilika";
+            else simu.status = "Imepokelewa";
+
+            localStorage.setItem("simuZote", JSON.stringify(simuZote));
+            onyeshaSimu();
+        }
+
+        function futaSimu(index) {
+            if(confirm("Una uhakika unataka kufuta taarifa za simu hii?")) {
+                simuZote.splice(index, 1);
+                localStorage.setItem("simuZote", JSON.stringify(simuZote));
+                onyeshaSimu();
+            }
+        }
+
+        function tafutaSimuKatikaOrodha() {
+            let neno = document.getElementById("tafutaSimu").value.toLowerCase();
+            let matokeo = simuZote.filter(s => 
+                (s.jina && s.jina.toLowerCase().includes(neno)) || 
+                (s.namba && s.namba.toLowerCase().includes(neno)) || 
+                (s.brand && s.brand.toLowerCase().includes(neno)) || 
+                (s.model && s.model.toLowerCase().includes(neno))
+            );
+            onyeshaSimu(matokeo);
+        }
+
+        function funguaRisiti(index) {
+            let s = simuZote[index];
+            let content = `
+                <p><b>Namba ya Risiti:</b> <span class="font-bold text-emerald-700">#${s.id}</span></p>
+                <p><b>Tarehe ya Kutolewa:</b> ${s.tarehe}</p>
+                <p><b>Jina la Mteja:</b> ${s.jina}</p>
+                <p><b>Simu ya Mteja:</b> ${s.namba}</p>
+                <p><b>Kifaa Kilichotengenezwa:</b> ${s.brand} ${s.model}</p>
+                <p><b>Maelezo ya Tatizo:</b> ${s.tatizo}</p>
+                <p><b>Hali ya Kazi:</b> <span class="font-bold uppercase">${s.status}</span></p>
+                <hr class="border-dashed border-slate-300 my-2">
+                <p><b>Bei ya Kazi:</b> Tsh ${s.bei}</p>
+                <p><b>Amelipa:</b> Tsh ${s.amelipa || 0}</p>
+                <p><b>Salio / Deni:</b> Tsh ${(parseFloat(s.bei) - parseFloat(s.amelipa || 0))} </p>
+            `;
+            document.getElementById('receiptContent').innerHTML = content;
+            document.getElementById('receiptModal').classList.remove('hidden');
+        }
+
+        function fungaRisiti() {
+            document.getElementById('receiptModal').classList.add('hidden');
+        }
+
+        function handleFileSelected(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+            selectedFileObject = file;
+            selectedFileType = file.type;
+            
+            const previewBox = document.getElementById('chat-preview-box');
+            const thumbContainer = document.getElementById('preview-thumb-container');
+            const fileNameElem = document.getElementById('preview-file-name');
+
+            previewBox.classList.add('active');
+            fileNameElem.innerText = `${file.name} (${(file.size / (1024*1024)).toFixed(1)} MB)`;
+            
+            let fileURL = URL.createObjectURL(file);
+            if(file.type.startsWith('image/')) {
+                thumbContainer.innerHTML = `<img src="${fileURL}" class="w-9 h-9 object-cover rounded-lg">`;
+            } else if(file.type.startsWith('audio/')) {
+                thumbContainer.innerHTML = `<audio controls src="${fileURL}" class="w-32 h-8"></audio>`;
+            } else {
+                thumbContainer.innerHTML = '📄';
+            }
+        }
+
+        function cancelMediaPreview() {
+            selectedFileObject = null;
+            selectedFileType = '';
+            document.getElementById('chat-preview-box').classList.remove('active');
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const box = document.getElementById('chat-messages');
+            const text = input.value.trim();
+            if (!text && !selectedFileObject) return;
+
+            let fileURL = selectedFileObject ? URL.createObjectURL(selectedFileObject) : '';
+            let html = `<div class="msg outgoing">`;
+            if (text) html += `<div>${text}</div>`;
+            if (selectedFileObject) {
+                if (selectedFileType.startsWith('image/')) {
+                    html += `<img src="${fileURL}" class="w-36 rounded-lg mt-1 shadow-sm">`;
+                } else if (selectedFileType.startsWith('video/')) {
+                    html += `<video controls width="100%" class="mt-1 rounded-lg"><source src="${fileURL}" type="${selectedFileType}"></video>`;
+                } else if (selectedFileType.startsWith('audio/')) {
+                    html += `<audio controls src="${fileURL}" class="mt-1 w-full"></audio>`;
+                } else {
+                    html += `<div class="media-preview-tag">📎 ${selectedFileObject.name}</div>`;
+                }
+            }
+            html += `</div>`;
+            box.innerHTML += html;
+            input.value = '';
+            cancelMediaPreview();
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function sendCommunityMsg() {
+            const input = document.getElementById('comm-input');
+            if(!input.value.trim()) return;
+            const box = document.getElementById('community-box');
+            box.innerHTML += `<div class="msg outgoing"><b>Wewe (Fundi):</b> ${input.value}</div>`;
+            input.value = '';
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function handleAdFileSelected(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+            selectedAdFileObject = file;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                storedAdBase64 = e.target.result;
+                document.getElementById('ad-preview-box').classList.add('active');
+                document.getElementById('ad-file-name').innerText = file.name;
+                document.getElementById('ad-thumb-container').innerHTML = file.type.startsWith('image/') ? `<img src="${storedAdBase64}" class="w-9 h-9 object-cover rounded-lg">` : '🎬';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function cancelAdPreview() {
+            selectedAdFileObject = null;
+            storedAdBase64 = "";
+            document.getElementById('ad-preview-box').classList.add('active'); // Keep expanded or toggle
+            document.getElementById('ad-preview-box').classList.remove('active');
+        }
+
+        function wasilishaTangazoFirebase() {
+            const businessName = document.getElementById('adStoreName').value;
+            const phone = document.getElementById('adPhone').value;
+            const description = document.getElementById('adDescription').value;
+            if(!description.trim() && !selectedAdFileObject) { return; }
+
+            if (db) {
+                db.ref('spareAds').push({
+                    businessName, phone, description, mediaUrl: storedAdBase64 || "", status: "pending", timestamp: Date.now()
+                }).then(() => {
+                    document.getElementById('adDescription').value = '';
+                    cancelAdPreview();
+                });
+            }
+        }
+
+        function loadApprovedLiveAds() {
+            const container = document.getElementById('live-ads-container');
+            if(!container || !db) return;
+            db.ref('spareAds').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (!data) { container.innerHTML = `<p class="text-xs text-textLight italic">Hakuna matangazo kwa sasa.</p>`; return; }
+                let html = '';
+                Object.entries(data).forEach(([key, ad]) => {
+                    if(ad.status !== 'approved') return;
+                    let mediaHtml = '';
+                    let imgSource = ad.mediaUrl || ad.imageUrl || ad.fileUrl || '';
+                    if(imgSource) {
+                        if(imgSource.startsWith('data:video') || imgSource.includes('video')) {
+                            mediaHtml = `<video controls width="100%" class="mt-2 max-h-52 rounded-xl object-cover border border-borderCol"><source src="${imgSource}" type="video/mp4"></video>`;
+                        } else {
+                            mediaHtml = `<img src="${imgSource}" class="mt-2 max-h-48 w-full rounded-xl object-cover border border-borderCol shadow-md" />`;
+                        }
+                    }
+                    html += `
+                        <div class="bg-darkBg border border-borderCol p-4 rounded-xl space-y-2.5 shadow-md">
+                            <div class="flex justify-between items-center border-b border-borderCol pb-2">
+                                <h4 class="text-accent font-extrabold text-xs">🏪 ${ad.businessName || 'Duka la Vipuri'}</h4>
+                                <span class="text-[10px] text-textLight font-medium">${ad.phone ? '📞 ' + ad.phone : ''}</span>
+                            </div>
+                            <p class="text-xs text-white leading-relaxed">${ad.description}</p>
+                            ${mediaHtml}
+                            <div class="flex flex-wrap gap-2 pt-2 border-t border-borderCol items-center">
+                                <button onclick="reactAd('${key}', 'like')" class="bg-bgDeep hover:bg-slate-800 text-emerald-400 px-2.5 py-1.5 rounded-lg text-[10px] border border-borderCol font-bold transition">❤️ Naipenda</button>
+                                <button onclick="reactAd('${key}', 'share')" class="bg-bgDeep hover:bg-slate-800 text-blue-400 px-2.5 py-1.5 rounded-lg text-[10px] border border-borderCol font-bold transition">🔗 Gawia</button>
+                                <a href="tel:${ad.phone || '0700000000'}" class="bg-accent hover:bg-emerald-600 text-white px-3.5 py-1.5 rounded-lg text-[10px] font-extrabold ml-auto transition shadow-md">📞 Piga Simu</a>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html || `<p class="text-xs text-textLight italic">Hakuna matangazo yaliyoidhinishwa bado.</p>`;
+            });
+        }
+
+        function reactAd(id, type) {}
+
+        function onyeshaWateja() {
+            let container = document.getElementById('clientContainer');
+            if(!container) return;
+            if(clientsList.length === 0) { container.innerHTML = `<p class="text-xs text-textLight text-center italic">Hakuna wateja waliosajiliwa bado.</p>`; return; }
+            container.innerHTML = clientsList.map((c, i) => `
+                <div class="bg-darkBg border border-borderCol p-3 rounded-xl flex justify-between items-center text-xs shadow-xs">
+                    <div><b>${c.name}</b> (${c.phone}) - <span class="text-accent">${c.device}</span></div>
+                    <button onclick="futaMteja(${i})" class="bg-red-600/20 text-red-400 px-2.5 py-1 rounded-lg font-bold hover:bg-red-600/30 transition">Futa</button>
+                </div>
+            `).join('');
+        }
+
+        function ongezaMteja() {
+            let name = document.getElementById('clientName').value.trim();
+            let phone = document.getElementById('clientPhone').value.trim();
+            let device = document.getElementById('clientDevice').value.trim();
+            if(!name || !phone) { return; }
+            clientsList.unshift({ name, phone, device });
+            localStorage.setItem('byao_clients', JSON.stringify(clientsList));
+            document.getElementById('clientName').value = '';
+            document.getElementById('clientPhone').value = '';
+            document.getElementById('clientDevice').value = '';
+            onyeshaWateja();
+        }
+
+        function futaMteja(i) {
+            clientsList.splice(i, 1);
+            localStorage.setItem('byao_clients', JSON.stringify(clientsList));
+            onyeshaWateja();
+        }
+
+        function tumaUthibitishoWaMalipo() {
+            let jina = document.getElementById("malipoJina").value.trim();
+            let namba = document.getElementById("malipoNamba").value.trim();
+            let transId = document.getElementById("malipoTransId").value.trim();
+            let aina = document.getElementById("ainaYaMalipo").value;
+            if(!jina || !transId) { return; }
+            
+            if(db) {
+                db.ref("malipoYaliyowasilishwa").push({
+                    jina, namba, transId, aina, hali: "Inasubiri Uhakiki", muda: new Date().toISOString()
+                }).then(() => {});
+            }
+        }
+
+        function loadAdminMalipo() {
+            const listDiv = document.getElementById('adminMalipoList');
+            if(!listDiv || !db) return;
+            db.ref("malipoYaliyowasilishwa").on("value", snapshot => {
+                const data = snapshot.val();
+                if(!data) { listDiv.innerHTML = `<p class="text-textLight italic">Hakuna malipo yaliyowasilishwa bado.</p>`; return; }
+                let html = '';
+                Object.values(data).forEach(m => {
+                    html += `
+                        <div class="bg-darkBg p-3 rounded-xl border border-borderCol flex justify-between items-center text-xs shadow-xs">
+                            <div>
+                                <b class="text-white">${m.jina}</b> (${m.aina})
+                                <p class="text-[10px] text-textLight mt-0.5">Ref: ${m.transId} | Tel: ${m.namba || 'N/A'}</p>
+                            </div>
+                            <span class="text-amber-400 font-bold">${m.hali}</span>
+                        </div>
+                    `;
+                });
+                listDiv.innerHTML = html;
+            });
+        }
+
+        function hesabuAdmin() {
+            let jumlaMapato = simuZote.reduce((acc, curr) => acc + (parseFloat(curr.bei) || 0), 0);
+            document.getElementById('adminTotalRevenue').innerText = "Tsh " + jumlaMapato.toLocaleString();
+            document.getElementById('adminTotalPhones').innerText = simuZote.length;
+        }
+
+        function loadAdminDashboardExtended() {
+            if(db) {
+                db.ref("maombiWateja").on("value", snapshot => {
+                    const data = snapshot.val();
+                    const reqList = document.getElementById('adminCustomerRequestsList');
+                    if(!data) { 
+                        if(reqList) reqList.innerHTML = `<p class="text-textLight italic">Hakuna maombi ya wateja kwa sasa.</p>`; 
+                        document.getElementById('adminTotalRequests').innerText = "0";
+                        return; 
+                    }
+                    let count = Object.keys(data).length;
+                    document.getElementById('adminTotalRequests').innerText = count;
+                    let html = '';
+                    Object.entries(data).forEach(([key, req]) => {
+                        html += `
+                            <div class="bg-darkBg p-2.5 rounded-xl border border-borderCol flex justify-between items-center text-xs">
+                                <div><b>${req.jina || 'Mteja'}</b> - ${req.brand || ''} ${req.model || ''} (${req.tarehe || 'N/A'})</div>
+                                <button onclick="deleteSingleRequest('${key}')" class="text-red-400 hover:text-red-300 font-bold px-2 py-1">Futa</button>
+                            </div>
+                        `;
+                    });
+                    if(reqList) reqList.innerHTML = html;
+                });
+
+                db.ref("spareAds").on("value", snapshot => {
+                    const data = snapshot.val();
+                    const adsList = document.getElementById('adminAdsApprovalList');
+                    if(!data) { 
+                        if(adsList) adsList.innerHTML = `<p class="text-textLight italic">Hakuna matangazo ya spares.</p>`; 
+                        document.getElementById('adminTotalAds').innerText = "0";
+                        return; 
+                    }
+                    let count = Object.keys(data).length;
+                    document.getElementById('adminTotalAds').innerText = count;
+                    let html = '';
+                    Object.entries(data).forEach(([key, ad]) => {
+                        let statusColor = ad.status === 'approved' ? 'text-emerald-400' : 'text-amber-400';
+                        html += `
+                            <div class="bg-darkBg p-3 rounded-xl border border-borderCol space-y-2 text-xs">
+                                <div class="flex justify-between items-center">
+                                    <b>${ad.businessName || 'Duka'}</b>
+                                    <span class="${statusColor} font-bold">${ad.status || 'pending'}</span>
+                                </div>
+                                <p class="text-textLight">${ad.description || ''}</p>
+                                <div class="flex gap-2 pt-1">
+                                    <button onclick="updateAdStatus('${key}', 'approved')" class="bg-emerald-600/20 text-emerald-400 px-3 py-1 rounded font-bold">Idhinisha (Approve)</button>
+                                    <button onclick="updateAdStatus('${key}', 'rejected')" class="bg-red-600/20 text-red-400 px-3 py-1 rounded font-bold">Kataa</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    if(adsList) adsList.innerHTML = html;
+                });
+            }
+        }
+
+        function bulkDeleteCustomerRequests() {
+            if(confirm("Una uhakika unataka kufuta maombi yote ya wateja kwa pamoja (Bulk Delete)?")) {
+                if(db) {
+                    db.ref("maombiWateja").remove().then(() => {});
+                }
+            }
+        }
+
+        function deleteSingleRequest(key) {
+            if(db) db.ref("maombiWateja/" + key).remove().then(() => {});
+        }
+
+        function updateAdStatus(key, status) {
+            if(db) db.ref("spareAds/" + key).update({ status }).then(() => {});
+        }
+
+        function toggleFundiBan(id) {
+            let statusElem = document.getElementById("fundiStatus-" + id);
+            let btnElem = document.getElementById("fundiBtn-" + id);
+            if(statusElem.innerText.includes("Hai")) {
+                statusElem.innerText = "Imezuiwa (Banned)";
+                statusElem.className = "text-red-400 font-bold";
+                btnElem.innerText = "Ruhusu (Unban)";
+                btnElem.className = "bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-[10px] font-bold transition";
+            } else {
+                statusElem.innerText = "Hai (Active)";
+                statusElem.className = "text-emerald-400 font-bold";
+                btnElem.innerText = "Zuia (Ban)";
+                btnElem.className = "bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg text-[10px] font-bold transition";
+            }
+        }
+
+        function savePaymentGateways() {
+            let vodacom = document.getElementById("gatewayVodacom").value;
+            let airtel = document.getElementById("gatewayAirtel").value;
+            let tigo = document.getElementById("gatewayTigo").value;
+            localStorage.setItem("gateway_vodacom", vodacom);
+            localStorage.setItem("gateway_airtel", airtel);
+            localStorage.setItem("gateway_tigo", tigo);
+        }
+
+        function sendBroadcastAlert() {
+            let msg = document.getElementById("broadcastMsgInput").value.trim();
+            if(!msg) { return; }
+            document.getElementById("broadcastMsgInput").value = "";
+        }
+
+        function testAndSaveWebhook() {
+            let url = document.getElementById("makeWebhookUrlInput").value.trim();
+            if(!url.startsWith("https://")) {
+                return;
+            }
+            localStorage.setItem("make_webhook_url", url);
+        }
+
+        function downloadJsonBackup() {
+            let backupData = {
+                simuZote,
+                clientsList,
+                date: new Date().toISOString()
+            };
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+            let downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "byao_enterprise_backup_" + Date.now() + ".json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function futaDataZote() {
+            if(confirm("ONYO KUBWA: Una uhakika unataka kufuta kumbukumbu zote za simu na mfumo?")) {
+                simuZote = [];
+                localStorage.removeItem("simuZote");
+                if(db) db.ref("maombiWateja").remove();
+                onyeshaSimu();
+            }
+        }
+
+        function showToast(message, type = 'success') {}
+
+        document.getElementById("menuBtn").onclick = () => { 
+            document.getElementById("sidebar").classList.toggle("-translate-x-full"); 
+            document.getElementById("overlay").classList.toggle("hidden"); 
+        };
+        document.getElementById("closeSidebar").onclick = document.getElementById("overlay").onclick = () => { 
+            document.getElementById("sidebar").classList.add("-translate-x-full"); 
+            document.getElementById("overlay").classList.add("hidden"); 
+        };
+    </script>
+</body>
+</html>
+
