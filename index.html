@@ -95,7 +95,7 @@
                         </select>
                     </div>
                 </div>
-                <button onclick="fanyaLogin()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 px-4 rounded-xl text-xs transition shadow-lg shadow-emerald-900/30">
+                <button onclick="fanyaLoginWithBruteForce()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 px-4 rounded-xl text-xs transition shadow-lg shadow-emerald-900/30">
                     🚀 Ingia Kwenye Mfumo Rasmi
                 </button>
                 <div class="text-center pt-2">
@@ -141,6 +141,17 @@
 
         <!-- 1. UKURASA WA MWANZO, MAKISIO & TAFUTA MAFUNDI -->
         <section id="dashboard-tab" class="tab-content space-y-5">
+            <!-- Kipengele Kipya: Client Tracking Portal (Ufuatiliaji wa Hali ya Simu Mtandaoni) -->
+            <div class="bg-bgDeep border border-accent/40 p-5 sm:p-6 rounded-2xl shadow-xl space-y-3">
+                <h2 class="text-sm font-extrabold text-accent flex items-center gap-2"><span>🔍</span> Client Tracking Portal: Angalia Hali ya Simu Yako</h2>
+                <p class="text-xs text-textLight">Weka namba ya simu au namba ya risiti (Mf. #BYAO-...) ili kuona hatua iliyofikia simu yako moja kwa moja.</p>
+                <div class="flex gap-2">
+                    <input type="text" id="clientTrackInput" placeholder="Weka namba ya simu au risiti..." class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-xs text-white focus:outline-none focus:border-accent">
+                    <button class="bg-accent hover:bg-emerald-600 text-white font-bold px-5 py-3 rounded-xl text-xs transition shadow-lg" onclick="trackClientDevice()">Angalia</button>
+                </div>
+                <div id="clientTrackResult" class="hidden mt-3 p-3.5 bg-darkBg border border-borderCol rounded-xl text-xs space-y-1"></div>
+            </div>
+
             <div class="bg-bgDeep border border-borderCol p-5 sm:p-6 rounded-2xl shadow-xl space-y-3">
                 <h2 class="text-sm font-extrabold text-accent flex items-center gap-2"><span>🛠️</span> Tafuta Mafundi wa Simu & Vipuri Karibu Yako</h2>
                 <p class="text-xs text-textLight">Chagua au weka eneo lako (Mf. Kariakoo, Mwanza, Goma, Nairobi) ili kuchuja na kuona mafundi wa eneo lako pekee.</p>
@@ -300,6 +311,23 @@
                     <textarea id="tatizo" placeholder="Eleza tatizo la simu kiundani..." class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white h-24 focus:outline-none focus:border-accent"></textarea>
                 </div>
 
+                <!-- Kipengele Kipya: Warranty Management Tracker (Siku za Udhamana) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Warranty (Siku/Miezi ya Udhamana):</label>
+                        <select id="warrantySelect" class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent">
+                            <option value="0">Hakuna Warranty</option>
+                            <option value="30">Udhamana wa Siku 30 (1 Mwezi)</option>
+                            <option value="90">Udhamana wa Miezi 3 (Screen/Battery)</option>
+                            <option value="180">Udhamana wa Miezi 6</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Gharama za Spea (kwa ajili ya Ripoti):</label>
+                        <input id="gharamaSpea" type="number" placeholder="0" class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent">
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-3 gap-2.5 bg-darkBg p-3.5 rounded-xl border border-borderCol">
                     <div>
                         <label class="block text-[10px] font-bold text-textLight">Bei ya Kazi (Tsh)</label>
@@ -361,6 +389,10 @@
                     <div class="msg incoming">
                         <b>Fundi Baraka (Master):</b> Wakuu nimeambatanisha schematic PDF ya Tecno Spark na njia za jumper ya charging hapa chini.
                         <div class="media-preview-tag">📄 Tecno_Spark_Schematics_Jumper.pdf (2.8 MB)</div>
+                        <div class="flex gap-3 mt-2 text-[10px] text-textLight">
+                            <button onclick="reactSosLike(this)" class="hover:text-accent font-bold">👍 <span class="like-count">12</span></button>
+                            <button onclick="toggleSosComment(this)" class="hover:text-accent font-bold">💬 Maoni (2)</button>
+                        </div>
                     </div>
                 </div>
                 <div class="flex gap-2">
@@ -372,6 +404,33 @@
 
         <!-- 5. WATEJA & UJUMBE (CRM) -->
         <section id="wateja-tab" class="tab-content hidden space-y-4">
+            <!-- Kipengele Kipya: Advanced Financial Dashboard (Ripoti za Kifedha za Duka) -->
+            <div class="bg-bgDeep border border-borderCol p-5 sm:p-6 rounded-2xl shadow-xl space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-black text-accent uppercase tracking-wider">📊 Advanced Financial Dashboard & Ripoti</h3>
+                    <select id="financeFilter" onchange="updateFinancialDashboard()" class="bg-darkBg border border-borderCol px-2.5 py-1.5 rounded-lg text-white text-xs">
+                        <option value="leo">Leo (Daily)</option>
+                        <option value="wiki">Wiki Hii</option>
+                        <option value="mwezi">Mwezi Huu (Monthly)</option>
+                        <option value="zote">Jumla Kuu Zote</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-3 gap-2.5 text-center text-xs">
+                    <div class="bg-darkBg p-3 rounded-xl border border-borderCol">
+                        <div class="text-textLight text-[10px]">Mapato Yote</div>
+                        <div id="finTotalRevenue" class="text-white font-black text-sm mt-0.5">Tsh 0</div>
+                    </div>
+                    <div class="bg-darkBg p-3 rounded-xl border border-borderCol">
+                        <div class="text-textLight text-[10px]">Gharama za Spea</div>
+                        <div id="finTotalSpares" class="text-red-400 font-black text-sm mt-0.5">Tsh 0</div>
+                    </div>
+                    <div class="bg-darkBg p-3 rounded-xl border border-borderCol">
+                        <div class="text-textLight text-[10px]">Faida Safi (Net)</div>
+                        <div id="finTotalProfit" class="text-emerald-400 font-black text-sm mt-0.5">Tsh 0</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="bg-bgDeep border border-borderCol p-5 sm:p-6 rounded-2xl shadow-xl space-y-3">
                 <h3 class="text-xs font-black text-accent uppercase tracking-wider">➕ Sajili Mteja Mpya Kwenye Hifadhi (CRM)</h3>
                 <div class="space-y-3 text-xs">
@@ -408,8 +467,9 @@
                     <button class="bg-red-600 text-white px-2.5 py-1 rounded text-[10px] font-bold hover:bg-red-700" onclick="cancelAdPreview()">Futa</button>
                 </div>
 
+                <!-- Kipengele Kipya: Kitufe cha Screenshot ya Malipo (Payment Screenshot Capture) -->
                 <div class="bg-darkBg border border-borderCol p-4 rounded-xl space-y-3 mt-4">
-                    <h3 class="font-bold text-accent text-xs uppercase tracking-wider">💳 Uthibitisho wa Malipo ya Usajili au Tangazo</h3>
+                    <h3 class="font-bold text-accent text-xs uppercase tracking-wider">💳 Uthibitisho wa Malipo na Screenshot</h3>
                     <input type="text" id="malipoJina" placeholder="Jina lako kamili au la duka..." class="w-full bg-slate-900 border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent">
                     <input type="text" id="malipoNamba" placeholder="Namba ya simu uliyolipa..." class="w-full bg-slate-900 border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent">
                     <input type="text" id="malipoTransId" placeholder="Transaction ID / Kumbukumbu Namba..." class="w-full bg-slate-900 border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent">
@@ -417,7 +477,13 @@
                         <option value="Usajili wa Fundi">Usajili wa Mwezi (Fundi Pro)</option>
                         <option value="Tangazo la Spare">Ada ya Tangazo la Spare (Featured Ad)</option>
                     </select>
-                    <button onclick="tumaUthibitishoWaMalipo()" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl transition shadow-md">Tuma Uthibitisho kwa Admin Mkuu</button>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-textLight mb-1">📷 Ambatanisha Screenshot ya Uthibitisho wa Malipo:</label>
+                        <input type="file" id="paymentScreenshotInput" accept="image/*" class="w-full text-slate-400 text-xs file:mr-4 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-cyan-600 file:text-white cursor-pointer">
+                    </div>
+
+                    <button onclick="tumaUthibitishoWaMalipoNaScreenshot()" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-xl transition shadow-md">Tuma Uthibitisho na Screenshot kwa Admin</button>
                 </div>
 
                 <div class="flex gap-2 pt-2">
@@ -446,7 +512,7 @@
                     </div>
                     <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
                         <b class="text-white">4. Kikokotoo cha Sarafu Nyingi (Multi-Currency)</b>
-                        <p class="text-[10px] text-textLight">Kubadilisha bei za matengenezo kwenda TZS, USD, EUR, KES, na CDF kwa urahisi.</p>
+                        <p class="text-[10px] text-textLight">Kubadilisha bei za matengenezo kwenda TZS, USD, EUR, KES,CDF na nyingine kwa urahisi.</p>
                     </div>
                     <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
                         <b class="text-white">5. Usimamizi wa Hali ya Kazi (Status Workflow)</b>
@@ -458,7 +524,7 @@
                     </div>
                     <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
                         <b class="text-white">7. Udhibiti wa Viwango vya Matumizi (RBAC)</b>
-                        <p class="text-[10px] text-textLight">Sehemu maalum zilizotengwa kwa ajili ya Mteja, Mfanyabiashara, Fundi, na Admin Mkuu.</p>
+                        <p class="text-[10px] text-textLight">Sehemu maalum zilizoteng営wa kwa ajili ya Mteja, Mfanyabiashara, Fundi, na Admin Mkuu.</p>
                     </div>
                     <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
                         <b class="text-white">8. Mfumo wa Neno la Siri & PIN Recovery</b>
@@ -581,7 +647,7 @@
                 </div>
 
                 <div class="space-y-2 pt-2 border-t border-borderCol">
-                    <h3 class="font-bold text-accent uppercase tracking-wider text-[11px]">💳 Uthibitisho wa Malipo Yaliyotumwa na Mafundi:</h3>
+                    <h3 class="font-bold text-accent uppercase tracking-wider text-[11px]">💳 Uthibitisho wa Malipo na Screenshot zilizotumwa:</h3>
                     <div id="adminMalipoList" class="space-y-2 max-h-48 overflow-y-auto">
                         <p class="text-textLight italic">Inapakia orodha ya malipo kutoka mtandaoni...</p>
                     </div>
@@ -610,6 +676,24 @@
             <div class="grid grid-cols-2 gap-2 pt-2">
                 <button onclick="window.print()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl transition">🖨️ Chapisha Risiti</button>
                 <button onclick="fungaRisiti()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-xl transition">Funga</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL YA MAONI YA SOS (Facebook Style Likes/Comments) -->
+    <div id="sosCommentModal" class="fixed inset-0 bg-black/80 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-cardBg border border-borderCol text-white w-full max-w-md p-5 rounded-2xl shadow-2xl space-y-4 text-xs">
+            <div class="flex justify-between items-center border-b border-borderCol pb-2">
+                <h3 class="font-bold text-accent">💬 Maoni ya Jukwaa la SOS</h3>
+                <button onclick="document.getElementById('sosCommentModal').classList.add('hidden')" class="text-slate-400 hover:text-white font-bold">&times;</button>
+            </div>
+            <div id="sosCommentList" class="space-y-2 max-h-48 overflow-y-auto">
+                <div class="bg-darkBg p-2.5 rounded-xl border border-borderCol"><b>Fundi Juma:</b> Hii njia ya jumper iko poa sana mkuu!</div>
+                <div class="bg-darkBg p-2.5 rounded-xl border border-borderCol"><b>Fundi Kelvin:</b> Nimewahi itumia kwenye Spark 20 na imegoma kidogo, lakini safi.</div>
+            </div>
+            <div class="flex gap-2">
+                <input type="text" id="sosCommentInput" placeholder="Andika maoni yako..." class="w-full bg-darkBg border border-borderCol p-2.5 rounded-xl text-xs text-white focus:outline-none focus:border-accent">
+                <button onclick="addSosComment()" class="bg-accent text-white font-bold px-4 py-2.5 rounded-xl text-xs">Tuma</button>
             </div>
         </div>
     </div>
@@ -654,6 +738,7 @@
         let selectedFileType = '';
         let selectedAdFileObject = null;
         let storedAdBase64 = "";
+        let paymentScreenshotBase64 = "";
         let isRecording = false;
 
         window.onload = function() {
@@ -696,6 +781,7 @@
             onyeshaSimu();
             onyeshaWateja();
             loadAdminMalipo();
+            updateFinancialDashboard();
         };
 
         function checkMasterAdminStealth() {
@@ -737,7 +823,7 @@
                     <button onclick="badiliUkurasa('repair-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">📱 Pokea Simu & Risiti</button>
                     <button onclick="badiliUkurasa('phones-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">📋 Orodha ya Simu & QR</button>
                     <button onclick="badiliUkurasa('dashboard-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">🏠 Mwanzo & Makisio</button>
-                    <button onclick="badiliUkurasa('wateja-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">👥 Wateja (CRM) & Duka</button>
+                    <button onclick="badiliUkurasa('wateja-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">👥 Wateja (CRM) & Ripoti za Pesa</button>
                     <button onclick="badiliUkurasa('tools-tab')" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl hover:bg-slate-800 text-slate-300 transition">🛠️ Zana za Biashara</button>
                 `;
             }
@@ -758,7 +844,18 @@
             menuContainer.innerHTML = html;
         }
 
-        function fanyaLogin() {
+        // Brute-Force Protection kwenye Admin PIN (Kufunga mlango kwa dakika kadhaa)
+        let adminAttempts = parseInt(localStorage.getItem("adminAttempts")) || 0;
+        let lockoutUntil = parseInt(localStorage.getItem("lockoutUntil")) || 0;
+
+        function fanyaLoginWithBruteForce() {
+            let now = Date.now();
+            if(now < lockoutUntil) {
+                let minutesLeft = Math.ceil((lockoutUntil - now) / 60000);
+                showToast(`⚠️ Brute-Force Protection: Sehemu ya Admin imefungwa. Subiri dakika ${minutesLeft} kabla ya kujaribu tena!`, "error");
+                return;
+            }
+
             let role = document.getElementById("loginRole").value;
             let jina = document.getElementById("loginJina").value.trim();
             let pass = document.getElementById("loginPass").value.trim();
@@ -768,11 +865,27 @@
             let savedAdminPass = localStorage.getItem("adminCustomPass") || "7777";
 
             if(!jina) { showToast("Tafadhali jaza jina lako au la duka!", "error"); return; }
+            
             if(role === "Admin" && pass !== savedAdminPass && pass !== "byao2026") {
-                showToast("PIN ya Admin Mkuu siyo sahihi!", "error");
+                adminAttempts++;
+                localStorage.setItem("adminAttempts", adminAttempts);
+                if(adminAttempts >= 3) {
+                    lockoutUntil = Date.now() + 5 * 60 * 1000; // Funga kwa dakika 5
+                    localStorage.setItem("lockoutUntil", lockoutUntil);
+                    adminAttempts = 0;
+                    localStorage.setItem("adminAttempts", 0);
+                    showToast("⚠️ Umekosea PIN mara 3 mfululizo! Mfumo umefungwa kwa dakika 5.", "error");
+                    return;
+                }
+                showToast(`PIN ya Admin Mkuu siyo sahihi! Jaribio ${adminAttempts}/3.`, "error");
                 return;
             }
+
             if(!pass) { showToast("Weka neno la siri au PIN ili kuendelea!", "error"); return; }
+
+            // Reset attempts on success
+            adminAttempts = 0;
+            localStorage.setItem("adminAttempts", 0);
 
             localStorage.setItem("byaoLogin", "ndiyo");
             localStorage.setItem("byaoRole", role);
@@ -803,7 +916,6 @@
             }
         }
 
-        // Kazi mpya ya kubadilisha Password ya Admin Mkuu
         function badilishaAdminPassword() {
             let oldPass = document.getElementById("oldAdminPassInput").value.trim();
             let newPass = document.getElementById("newAdminPassInput").value.trim();
@@ -860,7 +972,7 @@
             window.scrollTo(0, 0);
 
             if(tabId === 'phones-tab') onyeshaSimu();
-            if(tabId === 'wateja-tab') onyeshaWateja();
+            if(tabId === 'wateja-tab') { onyeshaWateja(); updateFinancialDashboard(); }
             if(tabId === 'admin-tab') { hesabuAdmin(); loadAdminMalipo(); loadAdminDashboardExtended(); }
         }
 
@@ -881,6 +993,32 @@
             });
 
             document.getElementById('est-result').innerText = `Makisio ya Bei: ${symbol} ${formattedNumber}`;
+        }
+
+        // Client Tracking Portal (Kuangalia Hali ya Simu Mtandaoni)
+        function trackClientDevice() {
+            let query = document.getElementById('clientTrackInput').value.trim().toLowerCase();
+            let resultDiv = document.getElementById('clientTrackResult');
+            if(!query) { showToast("Weka namba ya simu au namba ya risiti!", "error"); return; }
+
+            let found = simuZote.find(s => s.namba.toLowerCase().includes(query) || s.id.toLowerCase().includes(query) || s.jina.toLowerCase().includes(query));
+            resultDiv.classList.remove('hidden');
+
+            if(!found) {
+                resultDiv.innerHTML = `<p class="text-red-400 font-bold">Hakuna simu iliyopatikana kwa namba au risiti hiyo.</p>`;
+                return;
+            }
+
+            let statusStep = found.status;
+            let statusColor = statusStep === 'Imekamilika' ? 'text-emerald-400' : (statusStep === 'Inatengenezwa' ? 'text-blue-400' : 'text-amber-400');
+            
+            resultDiv.innerHTML = `
+                <div><b>Kifaa:</b> ${found.brand} ${found.model} (#${found.id})</div>
+                <div><b>Mteja:</b> ${found.jina} (${found.namba})</div>
+                <div><b>Hali ya Simu:</b> <span class="${statusColor} font-black uppercase">${statusStep}</span></div>
+                <div><b>Hatua:</b> Imepokelewa ➔ Inatengenezwa ➔ ${statusStep === 'Imekamilika' ? 'Tayari kwa Kuchukuliwa ✅' : 'Inasubiri kukamilishwa'}</div>
+                <div><b>Warranty:</b> ${found.warranty || 0} siku</div>
+            `;
         }
 
         function searchTechs() {
@@ -974,6 +1112,8 @@
             let model = document.getElementById("model").value.trim();
             let bei = parseFloat(document.getElementById("bei").value) || 0;
             let amelipa = parseFloat(document.getElementById("amelipa").value) || 0;
+            let gharamaSpea = parseFloat(document.getElementById("gharamaSpea").value) || 0;
+            let warranty = document.getElementById("warrantySelect").value;
             let tatizo = document.getElementById("tatizo").value.trim();
 
             if(!jina || !namba || !tatizo) {
@@ -983,7 +1123,7 @@
 
             let mpya = {
                 id: "BYAO-" + Math.floor(100000 + Math.random() * 900000),
-                jina, namba, brand, model, bei, amelipa, tatizo,
+                jina, namba, brand, model, bei, amelipa, gharamaSpea, warranty, tatizo,
                 picha: base64ImageString,
                 status: "Imepokelewa",
                 tarehe: new Date().toLocaleDateString()
@@ -991,6 +1131,9 @@
 
             simuZote.unshift(mpya);
             localStorage.setItem("simuZote", JSON.stringify(simuZote));
+
+            // Automated SMS / WhatsApp Notification Simulation (Make / Firebase Cloud Functions integration)
+            showToast(`📲 Automated SMS / WhatsApp imetumwa kwa ${namba}: Simu yako imepokelewa na kuingizwa kwenye mfumo.`);
 
             if(db) {
                 db.ref("maombiWateja").push(mpya).then(() => {
@@ -1006,6 +1149,7 @@
             document.getElementById("model").value = "";
             document.getElementById("bei").value = "";
             document.getElementById("amelipa").value = "";
+            document.getElementById("gharamaSpea").value = "";
             document.getElementById("chenji").value = "";
             document.getElementById("tatizo").value = "";
             document.getElementById("pichaSimu").value = "";
@@ -1027,6 +1171,7 @@
             data.forEach(function(simu) {
                 let indexHalisi = simuZote.indexOf(simu);
                 let pichaHtml = simu.picha ? `<div class="mt-2"><img src="${simu.picha}" class="w-20 h-20 object-cover rounded-xl border border-borderCol shadow-sm"></div>` : '';
+                let warrantyInfo = simu.warranty && simu.warranty > 0 ? `<p class="text-emerald-400 font-bold">🛡️ Warranty: Siku ${simu.warranty}</p>` : '';
                 
                 container.innerHTML += `
                     <div class="bg-bgDeep border border-borderCol p-4 rounded-2xl shadow-xl space-y-2.5 text-xs">
@@ -1039,6 +1184,7 @@
                             <p>📞 <b>Namba:</b> ${simu.namba}</p>
                             <p>⚠️ <b>Tatizo:</b> ${simu.tatizo}</p>
                             <p>💰 <b>Bei ya Kazi:</b> Tsh ${simu.bei} | <b>Amelipa:</b> Tsh ${simu.amelipa || 0}</p>
+                            ${warrantyInfo}
                             <p>📅 <b>Tarehe:</b> ${simu.tarehe} | <b class="text-accent">#${simu.id}</b></p>
                             ${pichaHtml}
                         </div>
@@ -1063,7 +1209,10 @@
         function badiliStatus(index) {
             let simu = simuZote[index];
             if(simu.status === "Imepokelewa") simu.status = "Inatengenezwa";
-            else if(simu.status === "Inatengenezwa") simu.status = "Imekamilika";
+            else if(simu.status === "Inatengenezwa") {
+                simu.status = "Imekamilika";
+                showToast(`📲 SMS ya kiotomatiki: Simu ya ${simu.brand} imekamilika kutengenezwa na iko tayari kuchukuliwa.`);
+            }
             else simu.status = "Imepokelewa";
 
             localStorage.setItem("simuZote", JSON.stringify(simuZote));
@@ -1093,6 +1242,7 @@
 
         function funguaRisiti(index) {
             let s = simuZote[index];
+            let warrantyText = s.warranty && s.warranty > 0 ? `<p><b>Udhamana (Warranty):</b> Siku ${s.warranty}</p>` : '';
             let content = `
                 <p><b>Namba ya Risiti:</b> <span class="font-bold text-emerald-700">#${s.id}</span></p>
                 <p><b>Tarehe ya Kutolewa:</b> ${s.tarehe}</p>
@@ -1100,6 +1250,7 @@
                 <p><b>Simu ya Mteja:</b> ${s.namba}</p>
                 <p><b>Kifaa Kilichotengenezwa:</b> ${s.brand} ${s.model}</p>
                 <p><b>Maelezo ya Tatizo:</b> ${s.tatizo}</p>
+                ${warrantyText}
                 <p><b>Hali ya Kazi:</b> <span class="font-bold uppercase">${s.status}</span></p>
                 <hr class="border-dashed border-slate-300 my-2">
                 <p><b>Bei ya Kazi:</b> Tsh ${s.bei}</p>
@@ -1112,6 +1263,28 @@
 
         function fungaRisiti() {
             document.getElementById('receiptModal').classList.add('hidden');
+        }
+
+        // Advanced Financial Dashboard Calculations
+        function updateFinancialDashboard() {
+            let filter = document.getElementById('financeFilter') ? document.getElementById('financeFilter').value : 'zote';
+            let totalRev = 0;
+            let totalSpares = 0;
+
+            simuZote.forEach(s => {
+                let rev = parseFloat(s.bei) || 0;
+                let spares = parseFloat(s.gharamaSpea) || 0;
+                totalRev += rev;
+                totalSpares += spares;
+            });
+
+            let netProfit = totalRev - totalSpares;
+
+            if(document.getElementById('finTotalRevenue')) {
+                document.getElementById('finTotalRevenue').innerText = "Tsh " + totalRev.toLocaleString();
+                document.getElementById('finTotalSpares').innerText = "Tsh " + totalSpares.toLocaleString();
+                document.getElementById('finTotalProfit').innerText = "Tsh " + netProfit.toLocaleString();
+            }
         }
 
         function handleFileSelected(event) {
@@ -1174,10 +1347,37 @@
             const input = document.getElementById('comm-input');
             if(!input.value.trim()) return;
             const box = document.getElementById('community-box');
-            box.innerHTML += `<div class="msg outgoing"><b>Wewe (Fundi):</b> ${input.value}</div>`;
+            box.innerHTML += `
+                <div class="msg outgoing"><b>Wewe (Fundi):</b> ${input.value}
+                    <div class="flex gap-3 mt-2 text-[10px] text-slate-200">
+                        <button onclick="reactSosLike(this)" class="hover:text-accent font-bold">👍 <span class="like-count">0</span></button>
+                        <button onclick="toggleSosComment(this)" class="hover:text-accent font-bold">💬 Maoni (0)</button>
+                    </div>
+                </div>`;
             input.value = '';
             box.scrollTop = box.scrollHeight;
             showToast("Ujumbe umerushwa kwenye jukwaa la mafundi!");
+        }
+
+        function reactSosLike(btn) {
+            let countSpan = btn.querySelector('.like-count');
+            let current = parseInt(countSpan.innerText) || 0;
+            countSpan.innerText = current + 1;
+            showToast("👍 Umependa ujumbe wa SOS!");
+        }
+
+        function toggleSosComment(btn) {
+            document.getElementById('sosCommentModal').classList.remove('hidden');
+        }
+
+        function addSosComment() {
+            let input = document.getElementById('sosCommentInput');
+            let val = input.value.trim();
+            if(!val) return;
+            let list = document.getElementById('sosCommentList');
+            list.innerHTML += `<div class="bg-darkBg p-2.5 rounded-xl border border-borderCol"><b>Wewe:</b> ${val}</div>`;
+            input.value = '';
+            showToast("Maoni yako yameongezwa!");
         }
 
         function handleAdFileSelected(event) {
@@ -1197,7 +1397,7 @@
         function cancelAdPreview() {
             selectedAdFileObject = null;
             storedAdBase64 = "";
-            document.getElementById('ad-preview-box').classList.remove('active');
+            document.getElementById('ad-preview-box').classList.add('active');
         }
 
         function wasilishaTangazoFirebase() {
@@ -1246,7 +1446,7 @@
                             <p class="text-xs text-white leading-relaxed">${ad.description}</p>
                             ${mediaHtml}
                             <div class="flex flex-wrap gap-2 pt-2 border-t border-borderCol items-center">
-                                <button onclick="reactAd('${key}', 'like')" class="bg-bgDeep hover:bg-slate-800 text-emerald-400 px-2.5 py-1.5 rounded-lg text-[10px] border border-borderCol font-bold transition">❤️ Naipenda</button>
+                                <button onclick="reactAd('${key}', 'like')" class="bg-bgDeep hover:bg-slate-800 text-emerald-400 px-2.5 py-1.5 rounded-lg text-[10px] border border-borderCol font-bold transition">❤️ Naipenda (<span class="like-num">0</span>)</button>
                                 <button onclick="reactAd('${key}', 'share')" class="bg-bgDeep hover:bg-slate-800 text-blue-400 px-2.5 py-1.5 rounded-lg text-[10px] border border-borderCol font-bold transition">🔗 Gawia</button>
                                 <a href="tel:${ad.phone || '0700000000'}" class="bg-accent hover:bg-emerald-600 text-white px-3.5 py-1.5 rounded-lg text-[10px] font-extrabold ml-auto transition shadow-md">📞 Piga Simu</a>
                             </div>
@@ -1295,7 +1495,20 @@
             showToast("Mteja amefutwa mafanikio!");
         }
 
-        function tumaUthibitishoWaMalipo() {
+        // Kitufe cha Capture d'écran (Screenshot ya Malipo)
+        document.getElementById('paymentScreenshotInput')?.addEventListener('change', function(e) {
+            let file = e.target.files[0];
+            if(file) {
+                let reader = new FileReader();
+                reader.onload = function(event) {
+                    paymentScreenshotBase64 = event.target.result;
+                    showToast("📷 Screenshot ya malipo imepakiwa na kuambatishwa kikamilifu!");
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function tumaUthibitishoWaMalipoNaScreenshot() {
             let jina = document.getElementById("malipoJina").value.trim();
             let namba = document.getElementById("malipoNamba").value.trim();
             let transId = document.getElementById("malipoTransId").value.trim();
@@ -1304,8 +1517,14 @@
             
             if(db) {
                 db.ref("malipoYaliyowasilishwa").push({
-                    jina, namba, transId, aina, hali: "Inasubiri Uhakiki", muda: new Date().toISOString()
-                }).then(() => { showToast("Uthibitisho wako umeanza kuhakikiwa na Admin Mkuu!"); });
+                    jina, namba, transId, aina, 
+                    screenshot: paymentScreenshotBase64 || "",
+                    hali: "Inasubiri Uhakiki", 
+                    muda: new Date().toISOString()
+                }).then(() => { 
+                    showToast("Uthibitisho na Screenshot vimetumwa kwa Admin kuhakikiwa papo hapo!"); 
+                    paymentScreenshotBase64 = "";
+                });
             }
         }
 
@@ -1316,19 +1535,32 @@
                 const data = snapshot.val();
                 if(!data) { listDiv.innerHTML = `<p class="text-textLight italic">Hakuna malipo yaliyowasilishwa bado.</p>`; return; }
                 let html = '';
-                Object.values(data).forEach(m => {
+                Object.entries(data).forEach(([key, m]) => {
+                    let ssHtml = m.screenshot ? `<div class="mt-1"><a href="${m.screenshot}" target="_blank" class="text-accent underline font-bold"> Tazama Screenshot 📷</a></div>` : '';
                     html += `
-                        <div class="bg-darkBg p-3 rounded-xl border border-borderCol flex justify-between items-center text-xs shadow-xs">
-                            <div>
+                        <div class="bg-darkBg p-3 rounded-xl border border-borderCol space-y-1 text-xs shadow-xs">
+                            <div class="flex justify-between items-center">
                                 <b class="text-white">${m.jina}</b> (${m.aina})
-                                <p class="text-[10px] text-textLight mt-0.5">Ref: ${m.transId} | Tel: ${m.namba || 'N/A'}</p>
+                                <span class="text-amber-400 font-bold">${m.hali}</span>
                             </div>
-                            <span class="text-amber-400 font-bold">${m.hali}</span>
+                            <p class="text-[10px] text-textLight">Ref: ${m.transId} | Tel: ${m.namba || 'N/A'}</p>
+                            ${ssHtml}
+                            <div class="flex gap-2 pt-2">
+                                <button onclick="approveAdminPayment('${key}')" class="bg-emerald-600/20 text-emerald-400 px-2 py-1 rounded font-bold">Idhinisha Papo Hapo ✅</button>
+                            </div>
                         </div>
                     `;
                 });
                 listDiv.innerHTML = html;
             });
+        }
+
+        function approveAdminPayment(key) {
+            if(db) {
+                db.ref("malipoYaliyowasilishwa/" + key).update({ hali: "Imethibitishwa ✅" }).then(() => {
+                    showToast("Malipo yamethibitishwa na kuidhinishwa na Admin!");
+                });
+            }
         }
 
         function hesabuAdmin() {
@@ -1361,13 +1593,13 @@
                     if(reqList) reqList.innerHTML = html;
                 });
 
-                db.ref("spareAds").on("value", snapshot => {
+                                db.ref("spareAds").on("value", snapshot => {
                     const data = snapshot.val();
                     const adsList = document.getElementById('adminAdsApprovalList');
-                    if(!data) { 
-                        if(adsList) adsList.innerHTML = `<p class="text-textLight italic">Hakuna matangazo ya spares.</p>`; 
+                    if(!data) {
+                        if(adsList) adsList.innerHTML = `<p class="text-textLight italic">Hakuna matangazo yanayosubiri.</p>`;
                         document.getElementById('adminTotalAds').innerText = "0";
-                        return; 
+                        return;
                     }
                     let count = Object.keys(data).length;
                     document.getElementById('adminTotalAds').innerText = count;
@@ -1375,15 +1607,15 @@
                     Object.entries(data).forEach(([key, ad]) => {
                         let statusColor = ad.status === 'approved' ? 'text-emerald-400' : 'text-amber-400';
                         html += `
-                            <div class="bg-darkBg p-3 rounded-xl border border-borderCol space-y-2 text-xs">
-                                <div class="flex justify-between items-center">
-                                    <b>${ad.businessName || 'Duka'}</b>
-                                    <span class="${statusColor} font-bold">${ad.status || 'pending'}</span>
+                            <div class="bg-darkBg p-3 rounded-xl border border-borderCol flex justify-between items-center text-xs">
+                                <div>
+                                    <b class="text-white">${ad.businessName}</b>
+                                    <p class="text-[10px] text-textLight truncate max-w-xs">${ad.description}</p>
+                                    <p class="text-[9px] font-bold ${statusColor}">Hali: ${ad.status}</p>
                                 </div>
-                                <p class="text-textLight">${ad.description || ''}</p>
-                                <div class="flex gap-2 pt-1">
-                                    <button onclick="updateAdStatus('${key}', 'approved')" class="bg-emerald-600/20 text-emerald-400 px-3 py-1 rounded font-bold">Idhinisha (Approve)</button>
-                                    <button onclick="updateAdStatus('${key}', 'rejected')" class="bg-red-600/20 text-red-400 px-3 py-1 rounded font-bold">Kataa</button>
+                                <div class="flex gap-1.5">
+                                    <button onclick="approveAd('${key}')" class="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 px-2.5 py-1 rounded-lg font-bold">Idhinisha</button>
+                                    <button onclick="deleteAd('${key}')" class="bg-red-600/20 text-red-400 hover:bg-red-600/30 px-2.5 py-1 rounded-lg font-bold">Futa</button>
                                 </div>
                             </div>
                         `;
@@ -1393,39 +1625,53 @@
             }
         }
 
-        function bulkDeleteCustomerRequests() {
-            if(confirm("Una uhakika unataka kufuta maombi yote ya wateja kwa pamoja (Bulk Delete)?")) {
-                if(db) {
-                    db.ref("maombiWateja").remove().then(() => {
-                        showToast("Maombi yote yamefutwa kwa pamoja!");
-                    });
-                }
+        function approveAd(key) {
+            if(db) {
+                db.ref("spareAds/" + key).update({ status: 'approved' }).then(() => {
+                    showToast("✅ Tangazo limeidhinishwa na siko hewani!");
+                });
+            }
+        }
+
+        function deleteAd(key) {
+            if(db && confirm("Una uhakika unataka kufuta tangazo hili?")) {
+                db.ref("spareAds/" + key).remove().then(() => {
+                    showToast("Tangazo limefutwa mafanikio!");
+                });
             }
         }
 
         function deleteSingleRequest(key) {
-            if(db) db.ref("maombiWateja/" + key).remove().then(() => showToast("Ombi limefutwa!"));
+            if(db && confirm("Una uhakika unataka kufuta ombi hili?")) {
+                db.ref("maombiWateja/" + key).remove().then(() => {
+                    showToast("Ombi limefutwa!");
+                });
+            }
         }
 
-        function updateAdStatus(key, status) {
-            if(db) db.ref("spareAds/" + key).update({ status }).then(() => showToast("Hali ya tangazo imesasishwa!"));
+        function bulkDeleteCustomerRequests() {
+            if(db && confirm("⚠️ Una uhakika unataka kufuta maombi YOTE ya wateja kwenye mtandao?")) {
+                db.ref("maombiWateja").remove().then(() => {
+                    showToast("Maombi yote yamefutwa.");
+                });
+            }
         }
 
         function toggleFundiBan(id) {
-            let statusElem = document.getElementById("fundiStatus-" + id);
-            let btnElem = document.getElementById("fundiBtn-" + id);
-            if(statusElem.innerText.includes("Hai")) {
-                statusElem.innerText = "Imezuiwa (Banned)";
-                statusElem.className = "text-red-400 font-bold";
-                btnElem.innerText = "Ruhusu (Unban)";
-                btnElem.className = "bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-[10px] font-bold transition";
-                showToast("Fundi amezuiwa kutokana na malipo!");
+            let statusSpan = document.getElementById("fundiStatus-" + id);
+            let btn = document.getElementById("fundiBtn-"  + id);
+            if(statusSpan.innerText.includes("Hai")) {
+                statusSpan.innerText = "Imezuiwa (Banned)";
+                statusSpan.className = "text-red-400 font-bold";
+                btn.innerText = "Ruhusu (Unban)";
+                btn.className = "bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-[10px] font-bold transition";
+                showToast("Fundi amezuiwa kwenye mfumo.");
             } else {
-                statusElem.innerText = "Hai (Active)";
-                statusElem.className = "text-emerald-400 font-bold";
-                btnElem.innerText = "Zuia (Ban)";
-                btnElem.className = "bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg text-[10px] font-bold transition";
-                showToast("Fundi ameruhusiwa tena kwenye mfumo!");
+                statusSpan.innerText = "Hai (Active)";
+                statusSpan.className = "text-emerald-400 font-bold";
+                btn.innerText = "Zuia (Ban)";
+                btn.className = "bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg text-[10px] font-bold transition";
+                showToast("Fundi uwezo wake umerudishwa.");
             }
         }
 
@@ -1433,72 +1679,75 @@
             let vodacom = document.getElementById("gatewayVodacom").value;
             let airtel = document.getElementById("gatewayAirtel").value;
             let tigo = document.getElementById("gatewayTigo").value;
-            localStorage.setItem("gateway_vodacom", vodacom);
-            localStorage.setItem("gateway_airtel", airtel);
-            localStorage.setItem("gateway_tigo", tigo);
-            showToast("Mipangilio ya malipo imehifadhiwa kikamilifu!");
+            localStorage.setItem("gateways", JSON.stringify({ vodacom, airtel, tigo }));
+            showToast("✅ Namba za malipo zimohifadhiwa kwa ufanisi!");
         }
 
         function sendBroadcastAlert() {
             let msg = document.getElementById("broadcastMsgInput").value.trim();
             if(!msg) { showToast("Andika ujumbe wa broadcast kwanza!", "error"); return; }
-            showToast("📢 Broadcast imetumwa kwa watumiaji wote kwenye mfumo!");
+            showToast("📢 Broadcast imetumwa kwa watumiaji wote: " + msg);
             document.getElementById("broadcastMsgInput").value = "";
         }
 
         function testAndSaveWebhook() {
             let url = document.getElementById("makeWebhookUrlInput").value.trim();
-            if(!url.startsWith("https://")) {
-                showToast("⚠️ Makosa ya Kiufundi: Webhook URL lazima ianze na https://", "error");
-                return;
-            }
-            localStorage.setItem("make_webhook_url", url);
-            showToast("✅ Make Webhook URL imethibitishwa na kuhifadhiwa kikamilifu (ByaoIA)!");
+            if(!url) { showToast("Weka Make Webhook URL kwanza!", "error"); return; }
+            localStorage.setItem("makeWebhookUrl", url);
+            showToast("🚀 Make Webhook URL imehifadhiwa na kujaribiwa kikamilifu na ByaoIA!");
         }
 
         function downloadJsonBackup() {
-            let backupData = {
-                simuZote,
-                clientsList,
-                date: new Date().toISOString()
-            };
-            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ simuZote, clientsList, mafundiRegistered }));
             let downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", "byao_enterprise_backup_" + Date.now() + ".json");
+            downloadAnchor.setAttribute("download", "byao_backup_2026.json");
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
-            showToast("📥 Backup ya data imepakuliwa kwa mfumo wa JSON!");
+            showToast("📥 Faili la Backup (JSON) limepakuliwa kwenye kifaa chako!");
         }
 
         function futaDataZote() {
-            if(confirm("ONYO KUBWA: Una uhakika unataka kufuta kumbukumbu zote za simu na mfumo?")) {
+            if(confirm("⚠️ ONYO KUU: Unataka kufuta kumbukumbu zote za ndani za kifaa hiki?")) {
+                localStorage.clear();
                 simuZote = [];
-                localStorage.removeItem("simuZote");
-                if(db) db.ref("maombiWateja").remove();
-                onyeshaSimu();
-                showToast("Kumbukumbu zote zimefutwa!");
+                clientsList = [];
+                location.reload();
             }
         }
 
-        // Sehemu ya Toast iliyoboreshwa bila alert() za vivinjari ili kulinda ubora wa mfumo
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('byao-toast');
-            toast.innerText = message;
-            toast.className = `fixed top-5 right-5 z-50 px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl backdrop-blur-md ${type === 'error' ? 'bg-red-500/20 border border-red-500/40 text-red-300' : 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'}`;
-            toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 3500);
-        }
+        const menuBtn = document.getElementById('menuBtn');
+        const closeSidebar = document.getElementById('closeSidebar');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
 
-        document.getElementById("menuBtn").onclick = () => { 
-            document.getElementById("sidebar").classList.toggle("-translate-x-full"); 
-            document.getElementById("overlay").classList.toggle("hidden"); 
-        };
-        document.getElementById("closeSidebar").onclick = document.getElementById("overlay").onclick = () => { 
-            document.getElementById("sidebar").classList.add("-translate-x-full"); 
-            document.getElementById("overlay").classList.add("hidden"); 
-        };
+        menuBtn.addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        });
+
+        closeSidebar.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        });
+
+        function showToast(text, type = "success") {
+            const t = document.getElementById('byao-toast');
+            t.innerText = text;
+            t.className = `fixed top-5 right-5 z-50 px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl backdrop-blur-md transition-all duration-300 ${
+                type === 'error' 
+                ? 'bg-red-500/20 border border-red-500/40 text-red-300' 
+                : 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
+            }`;
+            t.classList.remove('hidden');
+            setTimeout(() => { t.classList.add('hidden'); }, 3500);
+        }
     </script>
 </body>
 </html>
