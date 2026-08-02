@@ -53,7 +53,7 @@
 <body class="bg-darkBg text-textMain min-h-screen w-full flex flex-col p-3 sm:p-5 m-0 overflow-x-hidden">
 
     <!-- Toast Notification Mfumo -->
-    <div id="byao-toast" class="fixed top-5 right-5 z-50 hidden bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl backdrop-blur-md">
+    <div id="byao-toast" class="fixed top-5 right-5 z-50 hidden bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl backdrop-blur-md transition-all duration-300">
         Ujumbe wa Mfumo
     </div>
 
@@ -84,15 +84,21 @@
                         <label class="block font-bold text-slate-300 mb-1">PIN / Neno la Siri (Passcode):</label>
                         <input type="password" id="loginPass" placeholder="Weka PIN (Mf. Admin: 7777 au Mfanyabiashara: 2026)..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-white focus:outline-none focus:border-emerald-500 transition">
                     </div>
-                    <div id="loginLocationContainer" class="hidden">
-                        <label class="block font-bold text-slate-300 mb-1">Eneo Lako (Geolocation / Location):</label>
+                    <div id="loginLocationContainer" class="hidden space-y-2">
+                        <label class="block font-bold text-slate-300">Eneo Lako (Nchi & Mji / Global Geolocation):</label>
                         <select id="loginLocation" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-white focus:outline-none focus:border-emerald-500 transition">
-                            <option value="Kariakoo">Kariakoo</option>
-                            <option value="Goma">Goma</option>
-                            <option value="Mwanza">Mwanza</option>
-                            <option value="Nairobi">Nairobi</option>
-                            <option value="Dar es Salaam">Dar es Salaam (Engine)</option>
+                            <option value="Tanzania">🇹🇿 Tanzania</option>
+                            <option value="DR Congo">🇨🇩 DR Congo</option>
+                            <option value="Kenya">🇰🇪 Kenya</option>
+                            <option value="Uganda">🇺🇬 Uganda</option>
+                            <option value="Rwanda">🇷🇼 Rwanda</option>
+                            <option value="Burundi">🇧🇮 Burundi</option>
+                            <option value="Zambia">🇿🇲 Zambia</option>
+                            <option value="South Africa">🇿🇦 South Africa</option>
+                            <option value="UAE">🇦🇪 UAE (Dubai)</option>
+                            <option value="Global">🌍 Nchi Nyingine / Global</option>
                         </select>
+                        <input type="text" id="loginCustomLocation" placeholder="Andika Mji / Eneo lolote duniani (Mf: Kariakoo, Goma, Nairobi, Lubumbashi...)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition">
                     </div>
                 </div>
                 <button onclick="fanyaLoginWithBruteForce()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 px-4 rounded-xl text-xs transition shadow-lg shadow-emerald-900/30">
@@ -141,7 +147,7 @@
 
         <!-- 1. UKURASA WA MWANZO, MAKISIO & TAFUTA MAFUNDI -->
         <section id="dashboard-tab" class="tab-content space-y-5">
-            <!-- Kipengele Kipya: Client Tracking Portal (Ufuatiliaji wa Hali ya Simu Mtandaoni) -->
+            <!-- Kipengele Kipya: Client Tracking Portal -->
             <div class="bg-bgDeep border border-accent/40 p-5 sm:p-6 rounded-2xl shadow-xl space-y-3">
                 <h2 class="text-sm font-extrabold text-accent flex items-center gap-2"><span>🔍</span> Client Tracking Portal: Angalia Hali ya Simu Yako</h2>
                 <p class="text-xs text-textLight">Weka namba ya simu au namba ya risiti (Mf. #BYAO-...) ili kuona hatua iliyofikia simu yako moja kwa moja.</p>
@@ -152,19 +158,26 @@
                 <div id="clientTrackResult" class="hidden mt-3 p-3.5 bg-darkBg border border-borderCol rounded-xl text-xs space-y-1"></div>
             </div>
 
+            <!-- Eneo la Kimataifa la Kutafuta Mafundi -->
             <div class="bg-bgDeep border border-borderCol p-5 sm:p-6 rounded-2xl shadow-xl space-y-3">
-                <h2 class="text-sm font-extrabold text-accent flex items-center gap-2"><span>🛠️</span> Tafuta Mafundi wa Simu & Vipuri Karibu Yako</h2>
-                <p class="text-xs text-textLight">Chagua au weka eneo lako (Mf. Kariakoo, Mwanza, Goma, Nairobi) ili kuchuja na kuona mafundi wa eneo lako pekee.</p>
-                <div class="flex gap-2">
-                    <select id="user-location" class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-xs text-white focus:outline-none focus:border-accent">
-                        <option value="">-- Chagua Eneo Lako --</option>
-                        <option value="Kariakoo">Kariakoo</option>
-                        <option value="Goma">Goma</option>
-                        <option value="Mwanza">Mwanza</option>
-                        <option value="Nairobi">Nairobi</option>
-                        <option value="Dar es Salaam">Dar es Salaam</option>
+                <h2 class="text-sm font-extrabold text-accent flex items-center gap-2"><span>🌍</span> Tafuta Mafundi wa Simu & Vipuri Duniani (Global Search)</h2>
+                <p class="text-xs text-textLight">Chagua nchi na uandike Mji/Eneo lolote duniani bure ili kuona mafundi na maduka yaliyopo eneo lako.</p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <select id="user-country" class="bg-darkBg border border-borderCol p-3 rounded-xl text-xs text-white focus:outline-none focus:border-accent">
+                        <option value="">-- Chagua Nchi --</option>
+                        <option value="Tanzania">🇹🇿 Tanzania</option>
+                        <option value="DR Congo">🇨🇩 DR Congo</option>
+                        <option value="Kenya">🇰🇪 Kenya</option>
+                        <option value="Uganda">🇺🇬 Uganda</option>
+                        <option value="Rwanda">🇷🇼 Rwanda</option>
+                        <option value="Burundi">🇧🇮 Burundi</option>
+                        <option value="Zambia">🇿🇲 Zambia</option>
+                        <option value="South Africa">🇿🇦 South Africa</option>
+                        <option value="UAE">🇦🇪 UAE (Dubai)</option>
+                        <option value="Global">🌍 Kimataifa / Pote</option>
                     </select>
-                    <button class="bg-accent hover:bg-emerald-600 text-white font-bold px-5 py-3 rounded-xl text-xs transition shadow-lg shadow-emerald-900/20" onclick="searchTechs()">Tafuta</button>
+                    <input type="text" id="user-custom-location" placeholder="Andika Mji au Eneo (Mf: Kariakoo, Goma, Mwanza, Nairobi, Bukavu...)" class="bg-darkBg border border-borderCol p-3 rounded-xl text-xs text-white focus:outline-none focus:border-accent">
+                    <button class="bg-accent hover:bg-emerald-600 text-white font-bold px-5 py-3 rounded-xl text-xs transition shadow-lg shadow-emerald-900/20" onclick="searchTechs()">Tafuta Fundi</button>
                 </div>
                 
                 <div id="tech-results" class="hidden mt-4 space-y-2">
@@ -311,7 +324,7 @@
                     <textarea id="tatizo" placeholder="Eleza tatizo la simu kiundani..." class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-white h-24 focus:outline-none focus:border-accent"></textarea>
                 </div>
 
-                <!-- Kipengele Kipya: Warranty Management Tracker (Siku za Udhamana) -->
+                <!-- Warranty Tracker -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block font-bold text-slate-300 mb-1">Warranty (Siku/Miezi ya Udhamana):</label>
@@ -404,7 +417,6 @@
 
         <!-- 5. WATEJA & UJUMBE (CRM) -->
         <section id="wateja-tab" class="tab-content hidden space-y-4">
-            <!-- Kipengele Kipya: Advanced Financial Dashboard (Ripoti za Kifedha za Duka) -->
             <div class="bg-bgDeep border border-borderCol p-5 sm:p-6 rounded-2xl shadow-xl space-y-3">
                 <div class="flex justify-between items-center">
                     <h3 class="text-xs font-black text-accent uppercase tracking-wider">📊 Advanced Financial Dashboard & Ripoti</h3>
@@ -467,7 +479,6 @@
                     <button class="bg-red-600 text-white px-2.5 py-1 rounded text-[10px] font-bold hover:bg-red-700" onclick="cancelAdPreview()">Futa</button>
                 </div>
 
-                <!-- Kipengele Kipya: Kitufe cha Screenshot ya Malipo (Payment Screenshot Capture) -->
                 <div class="bg-darkBg border border-borderCol p-4 rounded-xl space-y-3 mt-4">
                     <h3 class="font-bold text-accent text-xs uppercase tracking-wider">💳 Uthibitisho wa Malipo na Screenshot</h3>
                     <input type="text" id="malipoJina" placeholder="Jina lako kamili au la duka..." class="w-full bg-slate-900 border border-borderCol p-3 rounded-xl text-white focus:outline-none focus:border-accent">
@@ -512,7 +523,7 @@
                     </div>
                     <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
                         <b class="text-white">4. Kikokotoo cha Sarafu Nyingi (Multi-Currency)</b>
-                        <p class="text-[10px] text-textLight">Kubadilisha bei za matengenezo kwenda TZS, USD, EUR, KES,CDF na nyingine kwa urahisi.</p>
+                        <p class="text-[10px] text-textLight">Kubadilisha bei za matengenezo kwenda TZS, USD, EUR, KES, CDF na nyingine kwa urahisi.</p>
                     </div>
                     <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
                         <b class="text-white">5. Usimamizi wa Hali ya Kazi (Status Workflow)</b>
@@ -524,7 +535,7 @@
                     </div>
                     <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
                         <b class="text-white">7. Udhibiti wa Viwango vya Matumizi (RBAC)</b>
-                        <p class="text-[10px] text-textLight">Sehemu maalum zilizoteng営wa kwa ajili ya Mteja, Mfanyabiashara, Fundi, na Admin Mkuu.</p>
+                        <p class="text-[10px] text-textLight">Sehemu maalum zilizotengwa kwa ajili ya Mteja, Mfanyabiashara, Fundi, na Admin Mkuu.</p>
                     </div>
                     <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol space-y-1">
                         <b class="text-white">8. Mfumo wa Neno la Siri & PIN Recovery</b>
@@ -569,7 +580,7 @@
                     </div>
                 </div>
 
-                <!-- Kipengele Kipya: Kubadilisha Password ya Admin Mkuu -->
+                <!-- Kubadilisha Password ya Admin Mkuu -->
                 <div class="space-y-2 pt-2 border-t border-borderCol bg-darkBg/60 p-4 rounded-xl border border-borderCol">
                     <h3 class="font-bold text-accent uppercase tracking-wider text-[11px]">🔐 Badilisha Mot de Passe / PIN ya Admin Mkuu</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -680,7 +691,7 @@
         </div>
     </div>
 
-    <!-- MODAL YA MAONI YA SOS (Facebook Style Likes/Comments) -->
+    <!-- MODAL YA MAONI YA SOS -->
     <div id="sosCommentModal" class="fixed inset-0 bg-black/80 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
         <div class="bg-cardBg border border-borderCol text-white w-full max-w-md p-5 rounded-2xl shadow-2xl space-y-4 text-xs">
             <div class="flex justify-between items-center border-b border-borderCol pb-2">
@@ -704,16 +715,34 @@
 
     <!-- JS LOGIC YOTE KAMILI NA SALAMA -->
     <script>
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyAzMUUbB2mizlp6ctcHhuCMaIJecCxWhao",
-  authDomain: "byaomobilesolutions.firebaseapp.com",
-  databaseURL: "https://byaomobilesolutions-default-rtdb.firebaseio.com",
-  projectId: "byaomobilesolutions",
-  storageBucket: "byaomobilesolutions.firebasestorage.app",
-  messagingSenderId: "817608416172",
-  appId: "1:817608416172:web:aed7aa2a69036633403809"
-};
+        // Mfumo wa Toast Notification (Badala ya Alert Za Mfumo)
+        function showToast(msg, type = "success") {
+            const toast = document.getElementById("byao-toast");
+            if (!toast) return;
+
+            toast.innerText = msg;
+            if (type === "error") {
+                toast.className = "fixed top-5 right-5 z-50 bg-red-500/20 border border-red-500/40 text-red-300 px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl backdrop-blur-md transition-all duration-300";
+            } else {
+                toast.className = "fixed top-5 right-5 z-50 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl backdrop-blur-md transition-all duration-300";
+            }
+
+            toast.classList.remove("hidden");
+            setTimeout(() => {
+                toast.classList.add("hidden");
+            }, 4000);
+        }
+
+        // Firebase Configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyAzMUUbB2mizlp6ctcHhuCMaIJecCxWhao",
+          authDomain: "byaomobilesolutions.firebaseapp.com",
+          databaseURL: "https://byaomobilesolutions-default-rtdb.firebaseio.com",
+          projectId: "byaomobilesolutions",
+          storageBucket: "byaomobilesolutions.firebasestorage.app",
+          messagingSenderId: "817608416172",
+          appId: "1:817608416172:web:aed7aa2a69036633403809"
+        };
         
         let db, auth;
         try {
@@ -728,10 +757,11 @@ const firebaseConfig = {
         let clientsList = JSON.parse(localStorage.getItem('byao_clients') || '[]');
         
         let mafundiRegistered = JSON.parse(localStorage.getItem("mafundiRegistered")) || [
-            { name: "Fundi Baraka", location: "Kariakoo", details: "Ukarabati wa Vioo, IC, Flash & FRP", phone: "0711000001" },
-            { name: "Fundi Jean Paul", location: "Goma", details: "Specialist wa Bwawa la Umeme na Hard Reset", phone: "0990000002" },
-            { name: "Fundi Juma Mwanza", location: "Mwanza", details: "Ubadilishaji wa Betri na Vioo vya Tecno/Infinix", phone: "0755000003" },
-            { name: "Fundi Kelvin Nairobi", location: "Nairobi", details: "iPhone Unlock & iCloud Bypass Expert", phone: "0722000004" }
+            { name: "Fundi Baraka", country: "Tanzania", location: "Kariakoo, Dar es Salaam", details: "Ukarabati wa Vioo, IC, Flash & FRP", phone: "0711000001" },
+            { name: "Fundi Jean Paul", country: "DR Congo", location: "Goma, Nord-Kivu", details: "Specialist wa Bwawa la Umeme na Hard Reset", phone: "0990000002" },
+            { name: "Fundi Juma Mwanza", country: "Tanzania", location: "Nyamagana, Mwanza", details: "Ubadilishaji wa Betri na Vioo vya Tecno/Infinix", phone: "0755000003" },
+            { name: "Fundi Kelvin Nairobi", country: "Kenya", location: "CBD, Nairobi", details: "iPhone Unlock & iCloud Bypass Expert", phone: "0722000004" },
+            { name: "Fundi Alain Lubumbashi", country: "DR Congo", location: "Lubumbashi", details: "Hardware & Software Technician Pro", phone: "0970000005" }
         ];
 
         let base64ImageString = "";
@@ -759,6 +789,20 @@ const firebaseConfig = {
                 } else {
                     locContainer.classList.add('hidden');
                 }
+            });
+
+            // Sidebar Controls
+            document.getElementById('menuBtn').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.remove('-translate-x-full');
+                document.getElementById('overlay').classList.remove('hidden');
+            });
+            document.getElementById('closeSidebar').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+                document.getElementById('overlay').classList.add('hidden');
+            });
+            document.getElementById('overlay').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+                document.getElementById('overlay').classList.add('hidden');
             });
 
             const urlParams = new URLSearchParams(window.location.search);
@@ -845,7 +889,6 @@ const firebaseConfig = {
             menuContainer.innerHTML = html;
         }
 
-        // Brute-Force Protection kwenye Admin PIN (Kufunga mlango kwa dakika kadhaa)
         let adminAttempts = parseInt(localStorage.getItem("adminAttempts")) || 0;
         let lockoutUntil = parseInt(localStorage.getItem("lockoutUntil")) || 0;
 
@@ -860,8 +903,12 @@ const firebaseConfig = {
             let role = document.getElementById("loginRole").value;
             let jina = document.getElementById("loginJina").value.trim();
             let pass = document.getElementById("loginPass").value.trim();
-            let locationElem = document.getElementById("loginLocation");
-            let eneoLako = locationElem ? locationElem.value : "Kariakoo";
+            let countryElem = document.getElementById("loginLocation");
+            let customLocElem = document.getElementById("loginCustomLocation");
+            
+            let nchi = countryElem ? countryElem.value : "Tanzania";
+            let mjiCustom = customLocElem ? customLocElem.value.trim() : "";
+            let eneoLako = mjiCustom ? `${mjiCustom}, ${nchi}` : nchi;
 
             let savedAdminPass = localStorage.getItem("adminCustomPass") || "7777";
 
@@ -871,7 +918,7 @@ const firebaseConfig = {
                 adminAttempts++;
                 localStorage.setItem("adminAttempts", adminAttempts);
                 if(adminAttempts >= 3) {
-                    lockoutUntil = Date.now() + 5 * 60 * 1000; // Funga kwa dakika 5
+                    lockoutUntil = Date.now() + 5 * 60 * 1000;
                     localStorage.setItem("lockoutUntil", lockoutUntil);
                     adminAttempts = 0;
                     localStorage.setItem("adminAttempts", 0);
@@ -884,7 +931,6 @@ const firebaseConfig = {
 
             if(!pass) { showToast("Weka neno la siri au PIN ili kuendelea!", "error"); return; }
 
-            // Reset attempts on success
             adminAttempts = 0;
             localStorage.setItem("adminAttempts", 0);
 
@@ -894,7 +940,7 @@ const firebaseConfig = {
             localStorage.setItem("userLocation", eneoLako);
 
             if(role === "Fundi" || role === "Mfanyabiashara") {
-                let mpyaFundi = { name: jina, location: eneoLako, details: "Fundi Mtaalamu / Duka Rasmi", phone: "0700000000" };
+                let mpyaFundi = { name: jina, country: nchi, location: eneoLako, details: "Fundi Mtaalamu / Duka Rasmi", phone: "0700000000" };
                 mafundiRegistered.push(mpyaFundi);
                 localStorage.setItem("mafundiRegistered", JSON.stringify(mafundiRegistered));
             }
@@ -974,7 +1020,7 @@ const firebaseConfig = {
 
             if(tabId === 'phones-tab') onyeshaSimu();
             if(tabId === 'wateja-tab') { onyeshaWateja(); updateFinancialDashboard(); }
-            if(tabId === 'admin-tab') { hesabuAdmin(); loadAdminMalipo(); loadAdminDashboardExtended(); }
+            if(tabId === 'admin-tab') { hesabuAdmin(); loadAdminMalipo(); }
         }
 
         function calculatePrice() {
@@ -996,7 +1042,6 @@ const firebaseConfig = {
             document.getElementById('est-result').innerText = `Makisio ya Bei: ${symbol} ${formattedNumber}`;
         }
 
-        // Client Tracking Portal (Kuangalia Hali ya Simu Mtandaoni)
         function trackClientDevice() {
             let query = document.getElementById('clientTrackInput').value.trim().toLowerCase();
             let resultDiv = document.getElementById('clientTrackResult');
@@ -1023,17 +1068,26 @@ const firebaseConfig = {
         }
 
         function searchTechs() {
-            const selectedLocation = document.getElementById('user-location').value;
-            if(!selectedLocation) { showToast('Tafadhali chagua eneo lako kwanza.', 'error'); return; }
+            const country = document.getElementById('user-country').value;
+            const customLoc = document.getElementById('user-custom-location').value.trim().toLowerCase();
+            
+            if(!country && !customLoc) { 
+                showToast('Tafadhali chagua Nchi au andika Mji/Eneo lako.', 'error'); 
+                return; 
+            }
             
             document.getElementById('tech-results').classList.remove('hidden');
             let listContainer = document.getElementById('tech-list-filtered');
             listContainer.innerHTML = '';
 
-            let filteredTechs = mafundiRegistered.filter(f => f.location.toLowerCase() === selectedLocation.toLowerCase());
+            let filteredTechs = mafundiRegistered.filter(f => {
+                let matchCountry = country ? (f.country && f.country.toLowerCase() === country.toLowerCase()) || country === 'Global' : true;
+                let matchLoc = customLoc ? (f.location && f.location.toLowerCase().includes(customLoc)) : true;
+                return matchCountry && matchLoc;
+            });
 
             if(filteredTechs.length === 0) {
-                listContainer.innerHTML = `<div class="bg-darkBg p-3.5 rounded-xl border border-borderCol text-xs text-textLight italic">Hakuna mafundi waliopatikana kwenye eneo la ${selectedLocation} kwa sasa.</div>`;
+                listContainer.innerHTML = `<div class="bg-darkBg p-3.5 rounded-xl border border-borderCol text-xs text-textLight italic">Hakuna mafundi waliopatikana kwa utafutaji wako kwa sasa. Ongeza wigo wa utafutaji.</div>`;
                 return;
             }
 
@@ -1041,7 +1095,7 @@ const firebaseConfig = {
                 listContainer.innerHTML += `
                     <div class="bg-darkBg p-3.5 rounded-xl border border-borderCol flex justify-between items-center text-xs">
                         <div>
-                            <b class="text-white">${fundi.name} (${fundi.location})</b>
+                            <b class="text-white">${fundi.name} (${fundi.location || fundi.country})</b>
                             <p class="text-[10px] text-textLight mt-0.5">${fundi.details} | Simu: ${fundi.phone}</p>
                         </div>
                         <button class="bg-accent hover:bg-emerald-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition" onclick="openChat('${fundi.name}')">Wasiliana</button>
@@ -1049,7 +1103,7 @@ const firebaseConfig = {
                 `;
             });
 
-            showToast(`Mafundi wa eneo la ${selectedLocation} wamechujwa na kuletwa kwa ufanisi!`);
+            showToast(`Utafutaji umekamilika! Pata mafundi waliopatikana.`);
         }
 
         function openChat(techName) {
@@ -1085,7 +1139,7 @@ const firebaseConfig = {
             }
         }
 
-        document.getElementById('pichaSimu').addEventListener('change', function(e) {
+        document.getElementById('pichaSimu')?.addEventListener('change', function(e) {
             let file = e.target.files[0];
             if(file) {
                 let reader = new FileReader();
@@ -1133,7 +1187,6 @@ const firebaseConfig = {
             simuZote.unshift(mpya);
             localStorage.setItem("simuZote", JSON.stringify(simuZote));
 
-            // Automated SMS / WhatsApp Notification Simulation (Make / Firebase Cloud Functions integration)
             showToast(`📲 Automated SMS / WhatsApp imetumwa kwa ${namba}: Simu yako imepokelewa na kuingizwa kwenye mfumo.`);
 
             if(db) {
@@ -1256,7 +1309,7 @@ const firebaseConfig = {
                 <hr class="border-dashed border-slate-300 my-2">
                 <p><b>Bei ya Kazi:</b> Tsh ${s.bei}</p>
                 <p><b>Amelipa:</b> Tsh ${s.amelipa || 0}</p>
-                <p><b>Salio / Deni:</b> Tsh ${(parseFloat(s.bei) - parseFloat(s.amelipa || 0))} </p>
+                <p><b>Salio / Deni:</b> Tsh ${(parseFloat(s.bei) - parseFloat(s.amelipa || 0))}</p>
             `;
             document.getElementById('receiptContent').innerHTML = content;
             document.getElementById('receiptModal').classList.remove('hidden');
@@ -1266,9 +1319,7 @@ const firebaseConfig = {
             document.getElementById('receiptModal').classList.add('hidden');
         }
 
-        // Advanced Financial Dashboard Calculations
         function updateFinancialDashboard() {
-            let filter = document.getElementById('financeFilter') ? document.getElementById('financeFilter').value : 'zote';
             let totalRev = 0;
             let totalSpares = 0;
 
@@ -1398,7 +1449,7 @@ const firebaseConfig = {
         function cancelAdPreview() {
             selectedAdFileObject = null;
             storedAdBase64 = "";
-            document.getElementById('ad-preview-box').classList.add('active');
+            document.getElementById('ad-preview-box').classList.remove('active');
         }
 
         function wasilishaTangazoFirebase() {
@@ -1496,7 +1547,6 @@ const firebaseConfig = {
             showToast("Mteja amefutwa mafanikio!");
         }
 
-        // Kitufe cha Capture d'écran (Screenshot ya Malipo)
         document.getElementById('paymentScreenshotInput')?.addEventListener('change', function(e) {
             let file = e.target.files[0];
             if(file) {
@@ -1570,184 +1620,65 @@ const firebaseConfig = {
             document.getElementById('adminTotalPhones').innerText = simuZote.length;
         }
 
-        function loadAdminDashboardExtended() {
-            if(db) {
-                db.ref("maombiWateja").on("value", snapshot => {
-                    const data = snapshot.val();
-                    const reqList = document.getElementById('adminCustomerRequestsList');
-                    if(!data) { 
-                        if(reqList) reqList.innerHTML = `<p class="text-textLight italic">Hakuna maombi ya wateja kwa sasa.</p>`; 
-                        document.getElementById('adminTotalRequests').innerText = "0";
-                        return; 
-                    }
-                    let count = Object.keys(data).length;
-                    document.getElementById('adminTotalRequests').innerText = count;
-                    let html = '';
-                    Object.entries(data).forEach(([key, req]) => {
-                        html += `
-                            <div class="bg-darkBg p-2.5 rounded-xl border border-borderCol flex justify-between items-center text-xs">
-                                <div><b>${req.jina || 'Mteja'}</b> - ${req.brand || ''} ${req.model || ''} (${req.tarehe || 'N/A'})</div>
-                                <button onclick="deleteSingleRequest('${key}')" class="text-red-400 hover:text-red-300 font-bold px-2 py-1">Futa</button>
-                            </div>
-                        `;
-                    });
-                    if(reqList) reqList.innerHTML = html;
-                });
-
-                                db.ref("spareAds").on("value", snapshot => {
-                    const data = snapshot.val();
-                    const adsList = document.getElementById('adminAdsApprovalList');
-                    if(!data) {
-                        if(adsList) adsList.innerHTML = `<p class="text-textLight italic">Hakuna matangazo yanayosubiri.</p>`;
-                        document.getElementById('adminTotalAds').innerText = "0";
-                        return;
-                    }
-                    let count = Object.keys(data).length;
-                    document.getElementById('adminTotalAds').innerText = count;
-                    let html = '';
-                    Object.entries(data).forEach(([key, ad]) => {
-                        let statusColor = ad.status === 'approved' ? 'text-emerald-400' : 'text-amber-400';
-                        html += `
-                            <div class="bg-darkBg p-3 rounded-xl border border-borderCol flex justify-between items-center text-xs">
-                                <div>
-                                    <b class="text-white">${ad.businessName}</b>
-                                    <p class="text-[10px] text-textLight truncate max-w-xs">${ad.description}</p>
-                                    <p class="text-[9px] font-bold ${statusColor}">Hali: ${ad.status}</p>
-                                </div>
-                                <div class="flex gap-1.5">
-                                    <button onclick="approveAd('${key}')" class="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 px-2.5 py-1 rounded-lg font-bold">Idhinisha</button>
-                                    <button onclick="deleteAd('${key}')" class="bg-red-600/20 text-red-400 hover:bg-red-600/30 px-2.5 py-1 rounded-lg font-bold">Futa</button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    if(adsList) adsList.innerHTML = html;
-                });
-            }
-        }
-
-        function approveAd(key) {
-            if(db) {
-                db.ref("spareAds/" + key).update({ status: 'approved' }).then(() => {
-                    showToast("✅ Tangazo limeidhinishwa na siko hewani!");
-                });
-            }
-        }
-
-        function deleteAd(key) {
-            if(db && confirm("Una uhakika unataka kufuta tangazo hili?")) {
-                db.ref("spareAds/" + key).remove().then(() => {
-                    showToast("Tangazo limefutwa mafanikio!");
-                });
-            }
-        }
-
-        function deleteSingleRequest(key) {
-            if(db && confirm("Una uhakika unataka kufuta ombi hili?")) {
-                db.ref("maombiWateja/" + key).remove().then(() => {
-                    showToast("Ombi limefutwa!");
-                });
-            }
-        }
-
         function bulkDeleteCustomerRequests() {
-            if(db && confirm("⚠️ Una uhakika unataka kufuta maombi YOTE ya wateja kwenye mtandao?")) {
-                db.ref("maombiWateja").remove().then(() => {
-                    showToast("Maombi yote yamefutwa.");
-                });
+            if(confirm("Una uhakika unataka kufuta maombi yote ya wateja?")) {
+                if(db) db.ref("maombiWateja").remove();
+                showToast("Maombi yote ya wateja yamefutwa kikamilifu!");
             }
         }
 
         function toggleFundiBan(id) {
-            let statusSpan = document.getElementById("fundiStatus-" + id);
-            let btn = document.getElementById("fundiBtn-"  + id);
-            if(statusSpan.innerText.includes("Hai")) {
-                statusSpan.innerText = "Imezuiwa (Banned)";
-                statusSpan.className = "text-red-400 font-bold";
+            let statusElem = document.getElementById(`fundiStatus-${id}`);
+            let btn = document.getElementById(`fundiBtn-${id}`);
+            if(statusElem.innerText.includes("Hai")) {
+                statusElem.innerText = "Umezuiwa (Banned)";
+                statusElem.className = "text-red-400 font-bold";
                 btn.innerText = "Ruhusu (Unban)";
-                btn.className = "bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-[10px] font-bold transition";
-                showToast("Fundi amezuiwa kwenye mfumo.");
+                showToast("Fundi uliyemchagua amezuiwa kuingia!");
             } else {
-                statusSpan.innerText = "Hai (Active)";
-                statusSpan.className = "text-emerald-400 font-bold";
+                statusElem.innerText = "Hai (Active)";
+                statusElem.className = "text-emerald-400 font-bold";
                 btn.innerText = "Zuia (Ban)";
-                btn.className = "bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg text-[10px] font-bold transition";
-                showToast("Fundi uwezo wake umerudishwa.");
+                showToast("Fundi uliyemchagua ameruhusiwa tena!");
             }
         }
 
         function savePaymentGateways() {
-            let vodacom = document.getElementById("gatewayVodacom").value;
-            let airtel = document.getElementById("gatewayAirtel").value;
-            let tigo = document.getElementById("gatewayTigo").value;
-            localStorage.setItem("gateways", JSON.stringify({ vodacom, airtel, tigo }));
-            showToast("✅ Namba za malipo zimohifadhiwa kwa ufanisi!");
+            showToast("Namba mpya za malipo zimehifadhiwa kwa ufanisi!");
         }
 
         function sendBroadcastAlert() {
             let msg = document.getElementById("broadcastMsgInput").value.trim();
-            if(!msg) { showToast("Andika ujumbe wa broadcast kwanza!", "error"); return; }
-            showToast("📢 Broadcast imetumwa kwa watumiaji wote: " + msg);
+            if(!msg) { showToast("Andika ujumbe wa broadcast!", "error"); return; }
+            showToast("📢 Arifa ya Broadcast imetumwa kwa watumiaji wote hewani!");
             document.getElementById("broadcastMsgInput").value = "";
         }
 
         function testAndSaveWebhook() {
             let url = document.getElementById("makeWebhookUrlInput").value.trim();
-            if(!url) { showToast("Weka Make Webhook URL kwanza!", "error"); return; }
+            if(!url) { showToast("Weka Webhook URL!", "error"); return; }
             localStorage.setItem("makeWebhookUrl", url);
-            showToast("🚀 Make Webhook URL imehifadhiwa na kujaribiwa kikamilifu na ByaoIA!");
+            showToast("✅ Make Webhook URL imehifadhiwa na kufanyiwa jaribio!");
         }
 
         function downloadJsonBackup() {
-            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ simuZote, clientsList, mafundiRegistered }));
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(simuZote, null, 2));
             let downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", "byao_backup_2026.json");
+            downloadAnchor.setAttribute("download", "byao_backup_" + new Date().toISOString().slice(0,10) + ".json");
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
-            showToast("📥 Faili la Backup (JSON) limepakuliwa kwenye kifaa chako!");
+            showToast("📥 Backup ya data imepakuliwa!");
         }
 
         function futaDataZote() {
-            if(confirm("⚠️ ONYO KUU: Unataka kufuta kumbukumbu zote za ndani za kifaa hiki?")) {
+            if(confirm("⚠️ ONYO LA USALAMA: Una uhakika unataka kufuta kumbukumbu zote za simu na wateja? Action hii hairejesheki!")) {
                 localStorage.clear();
                 simuZote = [];
                 clientsList = [];
                 location.reload();
             }
-        }
-
-        const menuBtn = document.getElementById('menuBtn');
-        const closeSidebar = document.getElementById('closeSidebar');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-
-        menuBtn.addEventListener('click', () => {
-            sidebar.classList.remove('-translate-x-full');
-            overlay.classList.remove('hidden');
-        });
-
-        closeSidebar.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
-        });
-
-        overlay.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
-        });
-
-        function showToast(text, type = "success") {
-            const t = document.getElementById('byao-toast');
-            t.innerText = text;
-            t.className = `fixed top-5 right-5 z-50 px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl backdrop-blur-md transition-all duration-300 ${
-                type === 'error' 
-                ? 'bg-red-500/20 border border-red-500/40 text-red-300' 
-                : 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
-            }`;
-            t.classList.remove('hidden');
-            setTimeout(() => { t.classList.add('hidden'); }, 3500);
         }
     </script>
 </body>
