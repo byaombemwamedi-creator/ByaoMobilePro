@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="sw" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BYAO Mobile Solution Enterprise - Dashboard ya Fundi Pro</title>
+
+  <script>
+    // Security Guard Check
+    const session = JSON.parse(localStorage.getItem('byao_user_session') || '{}');
+    if (session.role && session.role !== 'fundi' && session.role !== 'technician' && session.role !== 'admin') {
+      window.location.href = 'index.html';
+    }
+  </script>
+  
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+      tailwind.config = {
+          darkMode: 'class',
+          theme: {
+              extend: {
+                  colors: {
+                      darkBg: '#050b18',
+                      cardBg: '#0f172a',
+                      primary: '#0066ff',
+                      accent: '#00e5ff',
+                  }
+              }
+          }
+      }
+  </script>
+  <style>
+      body { background-color: #050b18; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+      .glass-card { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(0, 229, 255, 0.2); }
+  </style>
+
+  <!-- FIREBASE SDKs (Web Compat Version) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start p-3 sm:p-6 relative">
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed top-5 right-5 z-50 hidden bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl backdrop-blur-md"></div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="w-full max-w-5xl space-y-5">
+        
+        <!-- HEADER BRANDING & LOGOUT -->
+        <div class="glass-card p-4 sm:p-6 rounded-3xl flex items-center justify-between shadow-2xl">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center font-bold text-xl shadow-lg shadow-cyan-500/30 text-white">B</div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-black text-white tracking-tight">BYAO TECHNICIAN PRO</h1>
+                    <p class="text-slate-400 text-[11px]">Jukwaa la Maendeleo ya Kazi, Spares na Ujumbe</p>
+                </div>
+            </div>
+            <button onclick="logoutFundi()" class="bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-300 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1">
+                <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                <span class="hidden sm:inline">Toka</span>
+            </button>
+        </div>
+
+        <!-- SECTION 1: FORM YA REGISTRATION / ACCESS GATEWAY -->
+        <div id="gatewaySection" class="glass-card p-6 rounded-3xl space-y-4 shadow-2xl">
+            <div class="border-b border-slate-800 pb-3">
+                <h2 class="text-sm font-bold text-cyan-400 flex items-center gap-2">
+                    <i data-lucide="user-check" class="w-4 h-4"></i>
+                    <span>Usajili na Uingiaji wa Haraka wa Fundi</span>
+                </h2>
+                <p class="text-[11px] text-slate-400 mt-1">Ingiza kodi yako au tengeneza kodi binafsi/Auto-ID kuingia moja kwa moja.</p>
+            </div>
+
+            <form id="gatewayForm" onsubmit="handleGatewayAccess(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">Chagua Jukumu Lako (Role):</label>
+                    <select id="userRole" onchange="toggleVerificationField()" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400">
+                        <option value="technician" selected>🛠️ Fundi (Technician Desk)</option>
+                        <option value="customer">👤 Mteja (Client Portal)</option>
+                        <option value="merchant">🏪 Mfanyabiashara / Duka (Merchant Hub)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">Jina la Duka au Jina Lako Rasmi:</label>
+                    <input type="text" id="userNameOrStore" required placeholder="Mf. Byao Micro-Fix / Amani John" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Namba ya Simu / WhatsApp:</label>
+                        <input type="tel" id="userPhone" required placeholder="0712345678" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Eneo Ulilopo (Location):</label>
+                        <input type="text" id="userLocation" required placeholder="Mf. Kariakoo, Dar" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400">
+                    </div>
+                </div>
+
+                <div id="verificationBox" class="pt-3 border-t border-slate-800 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="block font-bold text-cyan-400">🔐 Weka Kodi Yako Binafsi au Kodi ya Uongozi:</label>
+                        <button type="button" onclick="contactAdminWhatsApp()" class="text-[10px] bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-500 text-emerald-300 px-2 py-1 rounded-lg transition flex items-center gap-1">
+                            <i data-lucide="message-square" class="w-3 h-3"></i>
+                            <span>Omba Code WhatsApp</span>
+                        </button>
+                    </div>
+                    <input type="password" id="verificationCode" placeholder="Ingiza kodi yako (mf. 1234) au acha wazi kwa Auto-ID..." class="w-full bg-slate-950 border border-cyan-500/50 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400">
+                    <p class="text-[10px] text-slate-400">💡 UKIACHA WAZI: Mfumo utakutumia OTP WhatsApp na kukupa Auto-ID ya kuingia moja kwa moja.</p>
+                </div>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-90 text-white font-black py-3.5 rounded-xl text-xs transition shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2">
+                    <i data-lucide="wrench" class="w-4 h-4"></i>
+                    <span>🚀 Thabitisha & Fungua Dashboard ya Fundi</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- SECTION 2: JUKWAA LA FUNDI WORKSPACE -->
+        <div id="fundiDashboard" class="hidden space-y-5">
+            
+            <!-- PROFILE CARD -->
+            <div class="glass-card p-5 rounded-3xl bg-gradient-to-br from-slate-900 via-blue-950/40 to-slate-900 border border-cyan-500/30 space-y-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-400 flex items-center justify-center text-cyan-300">
+                            <i data-lucide="hard-hat" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 id="dashFundiName" class="font-bold text-sm text-white">---</h3>
+                            <p id="dashFundiLocation" class="text-[11px] text-slate-400">---</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[9px] uppercase font-mono text-cyan-400 bg-cyan-950 border border-cyan-800 px-2 py-0.5 rounded-md">STATUS: VERIFIED</span>
+                        <div id="dashTechId" class="text-xs font-mono font-bold text-amber-300 mt-1">ID: ---</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NAVIGATION TABS -->
+            <div class="flex flex-wrap gap-2 border-b border-slate-800 pb-2">
+                <button onclick="switchTab('tabForm')" id="btnTabForm" class="text-xs font-bold px-4 py-2 rounded-xl bg-emerald-600 text-white transition-all flex items-center gap-1.5">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Pokea Kazi Mpya
+                </button>
+                <button onclick="switchTab('tabKazi')" id="btnTabKazi" class="text-xs font-bold px-4 py-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+                    <i data-lucide="list" class="w-4 h-4"></i> Kazi Zangu (<span id="totalJobsBadge">0</span>)
+                </button>
+                <button onclick="switchTab('tabMessages')" id="btnTabMessages" class="text-xs font-bold px-4 py-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+                    <i data-lucide="message-square" class="w-4 h-4"></i> Ujumbe (Admin & Mteja)
+                </button>
+                <button onclick="switchTab('tabMsaada')" id="btnTabMsaada" class="text-xs font-bold px-4 py-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+                    <i data-lucide="help-circle" class="w-4 h-4"></i> Msaada & Video
+                </button>
+            </div>
+
+            <!-- TAB 1: FORM YA POKEA SIMU / KAZI MPYA -->
+            <div id="tabForm" class="block bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-6">
+                <div class="border-b border-slate-800 pb-3 flex flex-wrap justify-between items-center gap-3">
+                    <div>
+                        <h3 class="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                            <i data-lucide="smartphone" class="w-5 h-5"></i> Fomu ya Kupokea Kifaa cha Mteja
+                        </h3>
+                        <p class="text-xs text-slate-400">Sajili taarifa za kifaa, piga picha ya ushahidi, na hesabu malipo.</p>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">Aina ya Sarafu</label>
+                        <select id="jobSarafu" onchange="kokotoaHesabu()" class="bg-slate-800 border border-slate-700 text-emerald-400 font-bold text-xs p-2 rounded-lg focus:outline-none focus:border-emerald-500">
+                            <option value="TZS" selected>TZS (Tanzanian Shilling)</option>
+                            <option value="BIF">BIF (Burundi Franc)</option>
+                            <option value="KES">KES (Kenyan Shilling)</option>
+                            <option value="USD">USD (US Dollar)</option>
+                            <option value="RWF">RWF (Rwandan Franc)</option>
+                            <option value="CDF">CDF (Congolese Franc)</option>
+                            <option value="UGX">UGX (Ugandan Shilling)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <form id="formKaziMpya" onsubmit="hifadhiKaziMpyaFundi(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Jina la Mteja *</label>
+                            <input type="text" id="jobMtejaJina" placeholder="Mfano: John Doe" required class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-3 rounded-xl focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Namba ya WhatsApp *</label>
+                            <input type="tel" id="jobMtejaSimu" placeholder="Mfano: 255712345678" required class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-3 rounded-xl focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Aina & Model ya Kifaa *</label>
+                            <input type="text" id="jobKifaa" placeholder="Mfano: Samsung A12, iPhone 11" required class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-3 rounded-xl focus:outline-none focus:border-emerald-500">
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/40 p-4 border border-slate-700/60 rounded-xl space-y-2">
+                        <label class="block text-xs font-semibold text-amber-400">📸 Picha ya Ushahidi (Hali ya Kifaa/Sura/Batri)</label>
+                        <input type="file" id="jobPichaUshahidi" accept="image/*" capture="environment" onchange="somaPichaUshahidi(event)" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500 cursor-pointer">
+                        <div id="previewPichaContainer" class="hidden mt-2">
+                            <img id="imgPreview" class="h-24 rounded-lg border border-slate-600 object-cover" src="#" alt="Preview Ushahidi">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-slate-800/20 p-4 rounded-xl border border-slate-800">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Bei ya Matengenezo</label>
+                            <input type="number" id="jobGharamaKazi" oninput="kokotoaHesabu()" placeholder="0" required class="w-full bg-slate-800 border border-slate-700 text-xs text-emerald-400 font-bold p-3 rounded-xl focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Gharama ya Spare (Kama ipo)</label>
+                            <input type="number" id="jobGharamaSpare" oninput="kokotoaHesabu()" placeholder="0" value="0" class="w-full bg-slate-800 border border-slate-700 text-xs text-rose-400 font-bold p-3 rounded-xl focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Kiasi Alicholipa Mteja (Advance)</label>
+                            <input type="number" id="jobKiasiAlicholipa" oninput="kokotoaHesabu()" placeholder="0" value="0" class="w-full bg-slate-800 border border-slate-700 text-xs text-blue-400 font-bold p-3 rounded-xl focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Deni / Chenji Anayodai</label>
+                            <div id="lblMatokeoHesabu" class="w-full bg-slate-900 border border-slate-700 text-xs p-3 rounded-xl font-bold text-slate-300">
+                                0.00
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 text-xs">
+                        <i data-lucide="save" class="w-4 h-4"></i> Hifadhi Kazi & Fungua "Kazi Zangu"
+                    </button>
+                </form>
+            </div>
+
+            <!-- TAB 2: TABLE YA KAZI ZANGU NA ANALYTICS -->
+            <div id="tabKazi" class="hidden space-y-6">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                        <div class="text-xs text-slate-400">Jumla ya Mapato</div>
+                        <div id="statMapato" class="text-xl font-bold text-emerald-400">0.00</div>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                        <div class="text-xs text-slate-400">Jumla ya Gharama za Spare</div>
+                        <div id="statGharama" class="text-xl font-bold text-rose-400">0.00</div>
+                    </div>
+                    <div class="bg-slate-900 border border-emerald-500/20 p-4 rounded-2xl">
+                        <div class="text-xs text-emerald-400 font-semibold">Faida Halisi (Net Profit)</div>
+                        <div id="statFaida" class="text-xl font-bold text-cyan-300">0.00</div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 overflow-x-auto">
+                    <h4 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="list-checks" class="w-4 h-4 text-cyan-400"></i> Orodha ya Kazi Zilizopokelewa & Hali Zake
+                    </h4>
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-800 text-slate-400 uppercase text-[10px]">
+                            <tr>
+                                <th class="p-3">Ushahidi</th>
+                                <th class="p-3">Mteja & Simu</th>
+                                <th class="p-3">Kifaa</th>
+                                <th class="p-3">Bei / Spare</th>
+                                <th class="p-3">Deni / Chenji</th>
+                                <th class="p-3">Hali ya Kazi</th>
+                                <th class="p-3 text-center">Kitendo / Risiti</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyFundiJobs" class="divide-y divide-slate-800">
+                            <!-- Data zitajazwa hapa kwa JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 3: SEHEMU YA UJUMBE (FUNDI, ADMIN & MTEJA) -->
+            <div id="tabMessages" class="hidden space-y-4">
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-4">
+                    <h3 class="text-sm font-bold text-cyan-400 flex items-center gap-2">
+                        <i data-lucide="message-square" class="w-4 h-4"></i>
+                        <span>Chumba cha Mawasiliano (Admin & Mteja)</span>
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- UJUMBE WA ADMIN -->
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                            <h4 class="text-xs font-bold text-amber-400 flex items-center gap-1">
+                                <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i> Ujumbe wa Admin / Uongozi
+                            </h4>
+                            <div id="adminMessagesBox" class="h-40 overflow-y-auto space-y-2 text-xs bg-slate-900 p-3 rounded-lg border border-slate-800">
+                                <div class="bg-slate-800/80 p-2 rounded border-l-2 border-amber-400 text-[11px]">
+                                    <strong class="text-amber-300">Admin:</strong> Karibu kwenye Mfumo wa Fundi Pro! Tafadhali hakikisha unajaza kazi zako kwa usahihi.
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <input type="text" id="txtAdminMsg" placeholder="Andika ujumbe kwenda kwa Admin..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white">
+                                <button onclick="sendMsgToAdmin()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-3 rounded-lg text-xs">Tuma</button>
+                            </div>
+                        </div>
+
+                        <!-- UJUMBE WA MTEJA -->
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                            <h4 class="text-xs font-bold text-emerald-400 flex items-center gap-1">
+                                <i data-lucide="user" class="w-3.5 h-3.5"></i> Ujumbe wa Mteja
+                            </h4>
+                            <div id="clientMessagesBox" class="h-40 overflow-y-auto space-y-2 text-xs bg-slate-900 p-3 rounded-lg border border-slate-800">
+                                <div class="bg-slate-800/80 p-2 rounded border-l-2 border-emerald-400 text-[11px]">
+                                    <strong class="text-emerald-300">Mteja (John):</strong> Simu yangu itakuwa tayari lini fundi?
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <input type="text" id="txtClientMsg" placeholder="Jibu ujumbe wa mteja..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white">
+                                <button onclick="sendMsgToClient()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 rounded-lg text-xs">Jibu</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: MSAADA KWA FUNDI (MAANDISHI NA VIDEO) -->
+            <div id="tabMsaada" class="hidden space-y-4">
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-6">
+                    <div>
+                        <h3 class="text-sm font-bold text-cyan-400 flex items-center gap-2">
+                            <i data-lucide="book-open" class="w-4 h-4"></i>
+                            <span>Mwongozo wa Msaada kwa Fundi (User Guide)</span>
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-1">Jifunze jinsi ya kutumia jukwaa hili kwa usahihi kwa njia ya maandishi na video.</p>
+                    </div>
+
+                    <!-- MAANDISHI -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                            <h4 class="font-bold text-emerald-400 flex items-center gap-1">
+                                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> 1. Jinsi ya Kupokea Kazi Mpya
+                            </h4>
+                            <p class="text-slate-400 leading-relaxed">
+                                Nenda kwenye Tab ya <strong>"Pokea Kazi Mpya"</strong>, jaza jina la mteja, namba ya WhatsApp, aina ya kifaa, gharama ya matengenezo, na kiasi alicholipa. Piga picha ya ushahidi wa kifaa kisha bonyeza <strong>Hifadhi Kazi</strong>.
+                            </p>
+                        </div>
+
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                            <h4 class="font-bold text-emerald-400 flex items-center gap-1">
+                                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> 2. Kubadilisha Hali ya Kifaa (Status)
+                            </h4>
+                            <p class="text-slate-400 leading-relaxed">
+                                Kwenye meza ya <strong>"Kazi Zangu"</strong>, unaweza kubadilisha status ya kifaa wakati wowote kati ya: 
+                                <span class="text-cyan-300 font-semibold">Kimepokelewa</span>, 
+                                <span class="text-amber-300 font-semibold">Kinatengenezwa</span>, 
+                                <span class="text-emerald-300 font-semibold">Kimekamilika</span>, au 
+                                <span class="text-rose-300 font-semibold">Imeshindikana</span>.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- VIDEO TUTORIAL -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                        <h4 class="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                            <i data-lucide="video" class="w-4 h-4"></i> Mafunzo kwa Njia ya Video (Video Tutorial)
+                        </h4>
+                        <div class="aspect-video w-full rounded-xl bg-slate-900 flex flex-col items-center justify-center text-slate-500 border border-slate-800 relative overflow-hidden">
+                            <i data-lucide="play-circle" class="w-12 h-12 text-cyan-400 mb-2 hover:scale-110 transition cursor-pointer"></i>
+                            <span class="text-xs text-slate-400">Tazama jinsi mfumo unavyofanya kazi hatua kwa hatua</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KITENGO CHA KUAGIZA SPARES -->
+            <div class="glass-card p-5 rounded-3xl space-y-3 shadow-xl">
+                <h3 class="text-xs font-bold text-cyan-400 flex items-center gap-2">
+                    <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                    <span>Agiza Spares kwa Wafanyabiashara (Quick Spare Order)</span>
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                    <input type="text" id="spareName" placeholder="Aina ya Spare (Mf. Kioo Redmi Note 10)" class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+                    <input type="text" id="spareModel" placeholder="Model / Chapa" class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+                    <button onclick="requestSparePart()" class="bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold rounded-xl p-2.5 transition flex items-center justify-center gap-1">
+                        <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                        <span>Tuma Maombi</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SUPPORT & DIRECT CONTACT -->
+            <div class="glass-card p-4 rounded-3xl space-y-2 flex flex-col justify-between">
+                <div>
+                    <h4 class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                        <i data-lucide="headphones" class="w-4 h-4 text-cyan-400"></i>
+                        <span>Msaada wa Uongozi / Admin</span>
+                    </h4>
+                    <p class="text-[10px] text-slate-400 mt-1">Je, umekutana na changamoto ya kitaalamu au kioo feki?</p>
+                </div>
+                <button onclick="contactAdminWhatsApp()" class="w-full bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-500 text-emerald-300 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+                    <i data-lucide="message-square" class="w-4 h-4"></i>
+                    <span>Chat na Uongozi WhatsApp</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL YA RISITI YA KIDIGITALI -->
+    <div id="modalRisiti" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-6 space-y-4 text-white shadow-2xl">
+            <div class="text-center border-b border-slate-800 pb-3">
+                <h3 class="font-black text-lg text-emerald-400 tracking-wider">BYAO MOBILE SOLUTION</h3>
+                <p class="text-[10px] text-slate-400 font-mono">RISITI YA MATENGENEZO YA KIFAA</p>
+            </div>
+            
+            <div id="risitiBody" class="space-y-2 text-xs text-slate-300">
+                <!-- Data za risiti kuonyeshwa hapa kwa JS -->
+            </div>
+
+            <div class="space-y-2 pt-2 border-t border-slate-800">
+                <button onclick="tumaWhatsAppRisiti()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="share-2" class="w-4 h-4"></i> Tuma WhatsApp kwa Mteja
+                </button>
+                <button onclick="fungaModalRisiti()" class="w-full bg-slate-800 text-slate-400 hover:text-white py-2 rounded-xl text-xs transition-all">
+                    Funga Risiti
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT YA UENDESHAJI JS -->
+    <script>
+        let pichaBase64Data = "";
+        let kaziInayoshughulikiwaRisiti = null;
+
+        // FIREBASE CONFIGURATION
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzMUUbB2mizlp6ctcHhuCMaIJecCxWhao",
+            authDomain: "byaomobilesolutions.firebaseapp.com",
+            databaseURL: "https://byaomobilesolutions-default-rtdb.firebaseio.com",
+            projectId: "byaomobilesolutions",
+            storageBucket: "byaomobilesolutions.appspot.com",
+            messagingSenderId: "817608416172",
+            appId: "1:817608416172:web:aed7aa2a69036633403809"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+        let localChats = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+            listenToTechnicianSync();
+            autoCheckSession();
+        });
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.remove('hidden');
+            setTimeout(() => t.classList.add('hidden'), 3500);
+        }
+
+        function toggleVerificationField() {
+            const role = document.getElementById('userRole').value;
+            const vBox = document.getElementById('verificationBox');
+            if (role === 'technician' || role === 'merchant') {
+                vBox.classList.remove('hidden');
+            } else {
+                vBox.classList.add('hidden');
+            }
+        }
+
+        function contactAdminWhatsApp() {
+            const name = document.getElementById('userNameOrStore')?.value || localStorage.getItem('byao_user_name') || 'Fundi';
+            const phone = document.getElementById('userPhone')?.value || localStorage.getItem('byao_user_phone') || '';
+            const adminNumber = "25767843604";
+            const msg = encodeURIComponent(`Habari Admin, mimi ni Fundi: ${name} (${phone}). Nahitaji Verification Code/Support kwenye jukwaa la BYAO Mobile Solution.`);
+            window.open(`https://wa.me/${adminNumber}?text=${msg}`, '_blank');
+        }
+
+        function listenToTechnicianSync() {
+            db.ref('byao_admin_chats').on('value', (snapshot) => {
+                const data = snapshot.val();
+                localChats = data ? Object.values(data) : [];
+                localStorage.setItem('byao_admin_chats', JSON.stringify(localChats));
+            });
+        }
+
+        function hifadhiTaarifaZaFundi(jina, simu, mji, techId, userPin) {
+            if (!jina || !simu) return;
+            const cleanId = techId || ('FUNDI-' + simu.replace(/[^0-9]/g, ''));
+            const fundiProfile = {
+                id: cleanId,
+                jina: jina,
+                simu: simu,
+                city: mji || 'Eneo Halijajazwa',
+                customPin: userPin || '',
+                status: 'Online',
+                lastSeen: new Date().toISOString()
+            };
+            db.ref('byao_technicians_db/' + cleanId).set(fundiProfile).catch(err => console.error(err));
+        }
+
+        // HANDLE GATEWAY ACCESS (ILE NA PIN BINAFSI NA AUTO-ID WHATSAPP)
+        function handleGatewayAccess(e) {
+            if (e) e.preventDefault();
+
+            const role = document.getElementById('userRole') ? document.getElementById('userRole').value : 'technician';
+            const name = document.getElementById('userNameOrStore')?.value.trim() || 'Fundi Mwanachama';
+            const phone = document.getElementById('userPhone')?.value.trim() || '';
+            const location = document.getElementById('userLocation')?.value.trim() || 'Tanzania';
+            const codeInput = document.getElementById('verificationCode');
+            const code = codeInput ? codeInput.value.trim() : '';
+
+            const validAdminCode = "BYAO-2026-PRO";
+
+            if (role === 'customer') {
+                window.location.href = 'mteja.html';
+                return;
+            } else if (role === 'merchant') {
+                window.location.href = 'mfanyabiashara.html';
+                return;
+            }
+
+            if (!phone) {
+                showToast("⚠️ Tafadhali weka namba yako ya simu (WhatsApp)!");
+                document.getElementById('userPhone')?.focus();
+                return;
+            }
+
+            let techId = "FUNDI-BYAO-" + Math.floor(1000 + Math.random() * 9000);
+            const savedPinKey = 'byao_tech_pin_' + phone.replace(/[^0-9]/g, '');
+            let existingPin = localStorage.getItem(savedPinKey);
+
+            // SCENARIO 1: Fundi ana kodi au ameweka PIN mpya
+            if (code) {
+                if (code === validAdminCode) {
+                    showToast("🔐 Imethibitishwa na Kodi ya Admin!");
+                } else if (existingPin && code === existingPin) {
+                    showToast("🔓 Umeingia kwa PIN yako binafsi!");
+                } else {
+                    localStorage.setItem(savedPinKey, code);
+                    showToast(`✨ Kodi yako Binafsi (${code}) Imesajiliwa Kikamilifu!`);
+                }
+
+                const sessionData = {
+                    role: 'fundi',
+                    name: name,
+                    phone: phone,
+                    location: location,
+                    techId: techId,
+                    pin: code,
+                    isVerified: true
+                };
+
+                localStorage.setItem('byao_user_session', JSON.stringify(sessionData));
+                hifadhiTaarifaZaFundi(name, phone, location, techId, code);
+
+                renderDashboard(sessionData);
+                return;
+            }
+
+            // SCENARIO 2: Kodi ikiachwa wazi -> Tuma OTP WhatsApp na Ingiza moja kwa moja
+            let autoOtp = localStorage.getItem('byao_temp_otp') || Math.floor(1000 + Math.random() * 9000).toString();
+            localStorage.setItem('byao_temp_otp', autoOtp);
+
+            const cleanPhone = phone.replace(/\+/g, '').replace(/^0/, '255');
+            const whatsappMsg = `Habari ${name}! Code yako ya kuingia BYAO Mobile Solution ni: *${autoOtp}* (ID: ${techId}).`;
+            const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(whatsappMsg)}`;
+
+            showToast("📲 OTP Imesukumwa WhatsApp & Auto-ID Imetengenezwa!");
+            window.open(whatsappUrl, '_blank');
+
+            const sessionData = {
+                role: 'fundi',
+                name: name,
+                phone: phone,
+                location: location,
+                techId: techId,
+                pin: autoOtp,
+                isVerified: true
+            };
+
+            localStorage.setItem('byao_user_session', JSON.stringify(sessionData));
+            hifadhiTaarifaZaFundi(name, phone, location, techId, autoOtp);
+
+            renderDashboard(sessionData);
+        }
+
+        function renderDashboard(data) {
+            document.getElementById('gatewaySection').classList.add('hidden');
+            const dash = document.getElementById('fundiDashboard');
+            dash.classList.remove('hidden');
+
+            document.getElementById('dashFundiName').innerText = data.name;
+            document.getElementById('dashFundiLocation').innerText = "📍 " + data.location + " • " + data.phone;
+            document.getElementById('dashTechId').innerText = "ID: " + data.techId;
+            
+            pakarishaChumbaChaFundi();
+        }
+
+        function switchTab(tabName) {
+            const tabs = ['tabForm', 'tabKazi', 'tabMessages', 'tabMsaada'];
+            const btns = ['btnTabForm', 'btnTabKazi', 'btnTabMessages', 'btnTabMsaada'];
+
+            tabs.forEach(t => {
+                document.getElementById(t).classList.add('hidden');
+            });
+
+            btns.forEach(b => {
+                document.getElementById(b).className = "text-xs font-bold px-4 py-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-all flex items-center gap-1.5";
+            });
+
+            document.getElementById(tabName).classList.remove('hidden');
+            
+            const activeBtn = "btn" + tabName.charAt(0).toUpperCase() + tabName.slice(1);
+            document.getElementById(activeBtn).className = "text-xs font-bold px-4 py-2 rounded-xl bg-emerald-600 text-white transition-all flex items-center gap-1.5";
+
+            if (tabName === 'tabKazi') {
+                pakarishaChumbaChaFundi();
+            }
+            lucide.createIcons();
+        }
+
+        function somaPichaUshahidi(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    pichaBase64Data = e.target.result;
+                    document.getElementById('imgPreview').src = pichaBase64Data;
+                    document.getElementById('previewPichaContainer').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function kokotoaHesabu() {
+            const gharama = parseFloat(document.getElementById('jobGharamaKazi').value) || 0;
+            const alicholipa = parseFloat(document.getElementById('jobKiasiAlicholipa').value) || 0;
+            const sarafu = document.getElementById('jobSarafu').value;
+
+            const tofauti = alicholipa - gharama;
+            const lbl = document.getElementById('lblMatokeoHesabu');
+
+            if (tofauti < 0) {
+                lbl.className = "w-full bg-slate-900 border border-slate-700 text-xs p-3 rounded-xl font-bold text-rose-400";
+                lbl.innerText = `Deni: ${Math.abs(tofauti).toLocaleString()} ${sarafu}`;
+            } else if (tofauti > 0) {
+                lbl.className = "w-full bg-slate-900 border border-slate-700 text-xs p-3 rounded-xl font-bold text-emerald-400";
+                lbl.innerText = `Chenji: ${tofauti.toLocaleString()} ${sarafu}`;
+            } else {
+                lbl.className = "w-full bg-slate-900 border border-slate-700 text-xs p-3 rounded-xl font-bold text-slate-300";
+                lbl.innerText = `Umelipa Zote (0.00 ${sarafu})`;
+            }
+        }
+
+        function hifadhiKaziMpyaFundi(event) {
+            event.preventDefault();
+
+            const mteja = document.getElementById("jobMtejaJina").value.trim();
+            const simu = document.getElementById("jobMtejaSimu").value.trim();
+            const kifaa = document.getElementById("jobKifaa").value.trim();
+            const sarafu = document.getElementById("jobSarafu").value;
+            const beiKazi = parseFloat(document.getElementById("jobGharamaKazi").value) || 0;
+            const beiSpare = parseFloat(document.getElementById("jobGharamaSpare").value) || 0;
+            const alicholipa = parseFloat(document.getElementById("jobKiasiAlicholipa").value) || 0;
+
+            const tofauti = alicholipa - beiKazi;
+            const deni = tofauti < 0 ? Math.abs(tofauti) : 0;
+            const chenji = tofauti > 0 ? tofauti : 0;
+            const faida = beiKazi - beiSpare;
+
+            const kaziMpya = {
+                id: "JOB-" + Date.now(),
+                mteja: mteja,
+                simu: simu,
+                kifaa: kifaa,
+                sarafu: sarafu,
+                beiKazi: beiKazi,
+                beiSpare: beiSpare,
+                alicholipa: alicholipa,
+                deni: deni,
+                chenji: chenji,
+                faida: faida,
+                picha: pichaBase64Data || "",
+                status: "Kimepokelewa",
+                tarehe: new Date().toLocaleDateString()
+            };
+
+            let kaziZote = JSON.parse(localStorage.getItem("fundiGlobalJobs")) || [];
+            kaziZote.unshift(kaziMpya);
+            localStorage.setItem("fundiGlobalJobs", JSON.stringify(kaziZote));
+
+            document.getElementById("formKaziMpya").reset();
+            document.getElementById("previewPichaContainer").classList.add("hidden");
+            pichaBase64Data = "";
+            document.getElementById("lblMatokeoHesabu").innerText = "0.00";
+
+            showToast("✅ Kazi mpya imerekodiwa kikamilifu!");
+            switchTab('tabKazi');
+        }
+
+        function badilishaStatusKazi(index, statusMpya) {
+            let kaziZote = JSON.parse(localStorage.getItem("fundiGlobalJobs")) || [];
+            if (kaziZote[index]) {
+                kaziZote[index].status = statusMpya;
+                localStorage.setItem("fundiGlobalJobs", JSON.stringify(kaziZote));
+                showToast(`🔄 Hali ya kazi imebadilishwa kuwa: ${statusMpya}`);
+                pakarishaChumbaChaFundi();
+            }
+        }
+
+        function pakarishaChumbaChaFundi() {
+            let kaziZote = JSON.parse(localStorage.getItem("fundiGlobalJobs")) || [];
+            document.getElementById("totalJobsBadge").innerText = kaziZote.length;
+
+            let totalRevenue = 0;
+            let totalCost = 0;
+            let netProfit = 0;
+            let tbodyHTML = "";
+
+            kaziZote.forEach((job, index) => {
+                totalRevenue += job.beiKazi;
+                totalCost += job.beiSpare;
+                netProfit += job.faida;
+
+                const imgTag = job.picha 
+                    ? `<img src="${job.picha}" class="w-10 h-10 rounded-lg object-cover border border-slate-700">`
+                    : `<span class="text-slate-500 text-[10px]">Hakuna</span>`;
+
+                const deniOrChenjiText = job.deni > 0 
+                    ? `<span class="text-rose-400 font-bold">Deni: ${job.deni.toLocaleString()} ${job.sarafu}</span>`
+                    : `<span class="text-emerald-400 font-bold">Chenji: ${job.chenji.toLocaleString()} ${job.sarafu}</span>`;
+
+                tbodyHTML += `
+                    <tr class="hover:bg-slate-800/50">
+                        <td class="p-3">${imgTag}</td>
+                        <td class="p-3 font-semibold text-white">${job.mteja}<br><span class="text-[10px] text-slate-400">${job.simu}</span></td>
+                        <td class="p-3">${job.kifaa}</td>
+                        <td class="p-3 font-bold text-emerald-400">${job.beiKazi.toLocaleString()} ${job.sarafu}<br><span class="text-[10px] text-rose-400">Spare: ${job.beiSpare.toLocaleString()}</span></td>
+                        <td class="p-3">${deniOrChenjiText}</td>
+                        <td class="p-3">
+                            <select onchange="badilishaStatusKazi(${index}, this.value)" class="bg-slate-950 border border-slate-700 text-[11px] font-bold p-1.5 rounded-lg focus:outline-none text-cyan-300">
+                                <option value="Kimepokelewa" ${job.status === 'Kimepokelewa' ? 'selected' : ''}>📥 Kimepokelewa</option>
+                                <option value="Kinatengenezwa" ${job.status === 'Kinatengenezwa' ? 'selected' : ''}>⚙️ Kinatengenezwa</option>
+                                <option value="Kimekamilika" ${job.status === 'Kimekamilika' ? 'selected' : ''}>✅ Kimekamilika</option>
+                                <option value="Imeshindikana" ${job.status === 'Imeshindikana' ? 'selected' : ''}>❌ Imeshindikana</option>
+                            </select>
+                        </td>
+                        <td class="p-3 text-center">
+                            <button onclick="funguaModalRisiti(${index})" class="bg-emerald-600/20 hover:bg-emerald-600 border border-emerald-500/30 text-emerald-300 hover:text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1 mx-auto">
+                              📄 Risiti
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById("statMapato").innerText = totalRevenue.toLocaleString() + " TZS";
+            document.getElementById("statGharama").innerText = totalCost.toLocaleString() + " TZS";
+            document.getElementById("statFaida").innerText = netProfit.toLocaleString() + " TZS";
+            document.getElementById("tbodyFundiJobs").innerHTML = tbodyHTML || `<tr><td colspan="7" class="p-4 text-center text-slate-500">Bado haujaingiza kazi yoyote.</td></tr>`;
+            lucide.createIcons();
+        }
+
+        function funguaModalRisiti(index) {
+            let kaziZote = JSON.parse(localStorage.getItem("fundiGlobalJobs")) || [];
+            kaziInayoshughulikiwaRisiti = kaziZote[index];
+            const job = kaziInayoshughulikiwaRisiti;
+
+            const html = `
+                <div class="flex justify-between text-slate-400"><span>ID ya Risiti:</span><span class="font-mono text-cyan-400">${job.id}</span></div>
+                <div class="flex justify-between text-slate-400"><span>Tarehe:</span><span class="font-bold text-white">${job.tarehe}</span></div>
+                <div class="flex justify-between text-slate-400"><span>Mteja:</span><span class="font-bold text-white">${job.mteja}</span></div>
+                <div class="flex justify-between text-slate-400"><span>Kifaa:</span><span class="font-bold text-white">${job.kifaa}</span></div>
+                <div class="flex justify-between text-slate-400"><span>Hali ya Kazi:</span><span class="font-bold text-emerald-400">${job.status}</span></div>
+                <hr class="border-slate-800 my-2">
+                <div class="flex justify-between"><span>Gharama ya Kazi:</span><span class="font-bold text-emerald-400">${job.beiKazi.toLocaleString()} ${job.sarafu}</span></div>
+                <div class="flex justify-between"><span>Alicholipa:</span><span class="font-bold text-blue-400">${job.alicholipa.toLocaleString()} ${job.sarafu}</span></div>
+                <div class="flex justify-between"><span>Deni Lililobaki:</span><span class="font-bold text-rose-400">${job.deni.toLocaleString()} ${job.sarafu}</span></div>
+            `;
+
+            document.getElementById("risitiBody").innerHTML = html;
+            document.getElementById("modalRisiti").classList.remove("hidden");
+            lucide.createIcons();
+        }
+
+        function fungaModalRisiti() {
+            document.getElementById("modalRisiti").classList.add("hidden");
+        }
+
+        function tumaWhatsAppRisiti() {
+            if (!kaziInayoshughulikiwaRisiti) return;
+            const job = kaziInayoshughulikiwaRisiti;
+
+            const ujumbe = `Habari *${job.mteja}*,\n\nHii ni Risiti ya Kifaa chako (*${job.kifaa}*) kutoka Byao Mobile Solution:\n\n*Namba ya Risiti:* ${job.id}\n*Tarehe:* ${job.tarehe}\n*Hali ya Kazi:* ${job.status}\n*Bei ya Ukarabati:* ${job.beiKazi.toLocaleString()} ${job.sarafu}\n*Umelipa:* ${job.alicholipa.toLocaleString()} ${job.sarafu}\n*Deni Lililobaki:* ${job.deni.toLocaleString()} ${job.sarafu}\n\nAsante kwa kuchagua huduma zetu!`;
+
+            const url = `https://wa.me/${job.simu.replace('+', '').replace(/\s/g, '')}?text=${encodeURIComponent(ujumbe)}`;
+            window.open(url, '_blank');
+        }
+
+        function sendMsgToAdmin() {
+            const txt = document.getElementById('txtAdminMsg').value;
+            if(!txt) return;
+            const box = document.getElementById('adminMessagesBox');
+            box.innerHTML += `<div class="bg-cyan-950/60 p-2 rounded border-l-2 border-cyan-400 text-[11px] text-right"><strong class="text-cyan-300">Wewe:</strong> ${txt}</div>`;
+            document.getElementById('txtAdminMsg').value = '';
+            showToast("Ujumbe umetumwa kwa Admin!");
+        }
+
+        function sendMsgToClient() {
+            const txt = document.getElementById('txtClientMsg').value;
+            if(!txt) return;
+            const box = document.getElementById('clientMessagesBox');
+            box.innerHTML += `<div class="bg-emerald-950/60 p-2 rounded border-l-2 border-emerald-400 text-[11px] text-right"><strong class="text-emerald-300">Wewe:</strong> ${txt}</div>`;
+            document.getElementById('txtClientMsg').value = '';
+            showToast("Ujumbe umetumwa kwa Mteja!");
+        }
+
+        function requestSparePart() {
+            const name = document.getElementById('spareName').value;
+            if(!name) return;
+            showToast(`📦 Ombi la Spare (${name}) limetumwa kwa Mfanyabiashara!`);
+            document.getElementById('spareName').value = '';
+        }
+
+        function logoutFundi() {
+            localStorage.removeItem('byao_user_session');
+            window.location.reload();
+        }
+
+        function autoCheckSession() {
+            const activeSession = localStorage.getItem('byao_user_session');
+            if (activeSession) {
+                const parsed = JSON.parse(activeSession);
+                if (parsed.role === 'fundi' || parsed.role === 'technician') {
+                    renderDashboard(parsed);
+                }
+            }
+        }
+  </script>
+</body>
+</html>
+
+

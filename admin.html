@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="sw" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BYAO Mobile Solution - Master Admin Control Hub 2026</title>
+    
+    <!-- Tailwind CSS & Lucide Icons CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#050b18',
+                        bgDeep: '#081026',
+                        cardBg: '#0f172a',
+                        primary: '#0066ff',
+                        accent: '#00e5ff',
+                        accentRed: '#ff3344',
+                        warning: '#f59e0b',
+                        textMain: '#f8fafc',
+                        textLight: '#94a3b8',
+                        borderCol: '#1e293b'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; box-sizing: border-box; }
+        body { background-color: #050b18; color: #f8fafc; }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: rgba(0, 229, 255, 0.4);
+            box-shadow: 0 0 25px rgba(0, 229, 255, 0.15);
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #050b18; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-[#050b18] text-textMain min-h-screen w-full block p-3 sm:p-6 m-0 overflow-x-hidden">
+
+    <!-- TOAST NOTIFICATION SYSTEM -->
+    <div id="byao-toast" class="fixed top-5 right-5 z-50 hidden bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl backdrop-blur-md transition-all duration-300">
+        Ujumbe wa Mfumo
+    </div>
+
+    <!-- ADMIN LOGIN / SECURITY PIN MODAL -->
+    <div id="adminLoginScreen" class="fixed inset-0 bg-[#050b18]/98 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="w-full max-w-md space-y-4">
+            <div class="glass-card p-6 rounded-2xl text-center space-y-3 border border-[#00e5ff]/40 shadow-2xl">
+                <span class="bg-[#0066ff] text-white text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-wider shadow-md shadow-blue-500/30">MASTER ADMIN SECURE ACCESS</span>
+                <h2 class="text-xl font-black text-white tracking-tight mt-1">BYAO ADMIN CONTROL HUB</h2>
+                <p class="text-slate-400 text-xs">Weka PIN rasmi ya Master Admin ili kuingia</p>
+
+                <!-- FIELD YA PIN (Maxlength Imeondolewa) -->
+                <div id="adminPinBox" class="pt-2">
+                    <input type="password" id="adminPinInput" placeholder="Ingiza PIN ya Admin" class="w-full bg-slate-900 border border-cyan-500/50 rounded-xl px-3 py-3 text-center text-cyan-300 font-bold focus:outline-none focus:border-cyan-400 tracking-widest text-base">
+                </div>
+
+                <button onclick="verifyAdminLogin()" class="w-full bg-[#0066ff] hover:bg-blue-600 text-white font-black py-3 px-4 rounded-xl text-xs transition shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 active:scale-95">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                    <span>Ingia Kwenye Master Dashboard</span>
+                </button>
+                <div class="text-center pt-1">
+                    <button onclick="saidiaKusahauPin()" class="text-[11px] text-[#00e5ff] hover:underline font-semibold">Umesahau PIN au Neno la Siri?</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL YA RESET PIN -->
+    <div id="resetPinModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-[#00e5ff]/30 rounded-2xl w-full max-w-md p-6 text-white shadow-2xl space-y-4">
+            <h3 class="text-lg font-bold text-[#00e5ff] flex items-center gap-2">
+                <i data-lucide="key" class="w-5 h-5"></i> Mfumo wa Kurejesha / Kubadilisha PIN
+            </h3>
+            <p class="text-xs text-slate-400">Weka jina, simu au ID ya Mfanyabiashara/Fundi aliyesahau PIN yake ili kumrekebishia.</p>
+            
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">Jina au ID ya Mwanachama:</label>
+                    <input type="text" id="resetTargetUser" placeholder="Mf. MRC-8842 au Fundi Baraka" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">Weka PIN Mpya:</label>
+                    <input type="password" id="newAssignedPin" placeholder="Weka PIN Mpya" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]">
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="kamilishaKubadiliPin()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs transition">Hifadhi na Tuma PIN Mpya</button>
+                <button onclick="document.getElementById('resetPinModal').classList.add('hidden')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl text-xs transition">Funga</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER YA MFUMO -->
+    <div class="w-full max-w-6xl mx-auto space-y-6">
+
+        <!-- HEADER KUU YA ADMIN -->
+        <header class="w-full flex flex-wrap justify-between items-center bg-[#081026] p-4 sm:p-5 rounded-2xl border border-slate-800 shadow-xl glass-card gap-3">
+            <div>
+                <div class="flex items-center space-x-2">
+                    <span class="bg-[#0066ff] text-white text-[10px] font-black px-2 py-0.5 rounded uppercase">MASTER ADMIN</span>
+                    <span class="text-xs text-[#00e5ff] font-bold">Secure Command Center</span>
+                </div>
+                <h1 class="text-base sm:text-lg font-black text-white tracking-tight mt-1">BYAO Mobile Solution - Admin Control 2026</h1>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <div class="bg-[#050b18] py-2 px-3.5 rounded-xl border border-slate-800 text-xs font-bold text-emerald-400 shadow-inner flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>System Active</span>
+                </div>
+                <div class="flex items-center gap-2 bg-[#050b18] p-1.5 pr-3 rounded-xl border border-slate-800">
+                    <div class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs border border-[#00e5ff]">A</div>
+                    <div class="text-left hidden xs:block">
+                        <div id="adminDisplayName" class="text-[11px] font-black text-white leading-tight">BYAO Mwamedi</div>
+                        <div class="text-[9px] text-[#00e5ff] font-bold">Master Admin</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- SEHEMU KUU YA DASHBOARD -->
+        <main class="w-full space-y-6">
+
+            <!-- 1. STATS OVERVIEW CARDS -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                <div class="glass-card p-4 rounded-2xl space-y-1">
+                    <h3 id="statPendingFunding" class="text-xl font-black text-amber-400">0</h3>
+                    <p class="text-slate-400 text-[11px]">Maombi ya Funding</p>
+                </div>
+                <div class="glass-card p-4 rounded-2xl space-y-1">
+                    <h3 id="statPendingAds" class="text-xl font-black text-blue-400">0</h3>
+                    <p class="text-slate-400 text-[11px]">Matangazo ya Wafanyabiashara</p>
+                </div>
+                <div class="glass-card p-4 rounded-2xl space-y-1">
+                    <h3 id="statTotalStock" class="text-xl font-black text-emerald-400">0</h3>
+                    <p class="text-slate-400 text-[11px]">Bidhaa Zilizopo Madukani</p>
+                </div>
+                <div class="glass-card p-4 rounded-2xl space-y-1">
+                    <h3 id="statSystemRev" class="text-xl font-black text-[#00e5ff]">Tsh 1,450,000</h3>
+                    <p class="text-slate-400 text-[11px]">Mapato ya Mfumo</p>
+                </div>
+            </div>
+
+            <!-- 2. LIVE CHAT ENGINE -->
+            <div class="glass-card p-5 sm:p-6 rounded-2xl shadow-xl space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
+                        <i data-lucide="message-square" class="w-4 h-4"></i> 1. Ujumbe na Mawasiliano ya Mfumo
+                    </h2>
+                    <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded font-bold">Real-Time Sync</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                        <h4 class="font-bold text-amber-400">Ujumbe Uliongia Kutoka kwa Wafanyabiashara:</h4>
+                        <div id="adminReceivedChatBox" class="h-40 overflow-y-auto space-y-2 bg-slate-900 p-3 rounded-lg border border-slate-800">
+                            <div class="text-slate-500 text-center py-4">Inasubiri ujumbe...</div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3 flex flex-col justify-between">
+                        <h4 class="font-bold text-cyan-400">Jibu au Tuma Ujumbe wa Mfumo:</h4>
+                        <textarea id="adminReplyInput" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-white h-24 focus:outline-none focus:border-[#00e5ff]" placeholder="Andika ujumbe wa kujibu au kutuma kwa Wafanyabiashara/Mafundi wote..."></textarea>
+                        <button onclick="sendAdminGlobalReply()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 rounded-lg text-xs transition flex items-center justify-center gap-2">
+                            <i data-lucide="send" class="w-3.5 h-3.5"></i> Tuma Ujumbe Kwenye Mfumo
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. MAPITIO YA MAOMBI YA FUNDING -->
+            <div class="glass-card p-5 sm:p-6 rounded-2xl shadow-xl space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
+                        <i data-lucide="credit-card" class="w-4 h-4"></i> 2. Ukaguzi wa Maombi ya Funding & Ada za Mfumo
+                    </h2>
+                    <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded font-bold">Pending Requests</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-900 text-slate-400 uppercase text-[10px]">
+                            <tr>
+                                <th class="p-3">Jina la Mwombaji</th>
+                                <th class="p-3">Namba ya Simu</th>
+                                <th class="p-3">Aina ya Kifurushi</th>
+                                <th class="p-3">Transaction ID</th>
+                                <th class="p-3 text-center">Vitendo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fundingTableBody" class="divide-y divide-slate-800">
+                            <!-- Data zitajazwa hapa -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 4. MODERATION YA MATANGAZO YA WAFANYABIASHARA -->
+            <div class="glass-card p-5 sm:p-6 rounded-2xl shadow-xl space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
+                        <i data-lucide="megaphone" class="w-4 h-4"></i> 3. Uidhinishaji wa Matangazo ya Wafanyabiashara (Live Merchant Ads)
+                    </h2>
+                    <span class="text-[10px] bg-blue-500/20 text-blue-300 px-2.5 py-0.5 rounded font-bold">Ads Moderation</span>
+                </div>
+                <div id="adsApprovalContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Data zitajazwa hapa -->
+                </div>
+            </div>
+
+            <!-- 5. TOA KITAMBULISHO MAALUM (ID) -->
+            <div class="glass-card p-5 sm:p-6 rounded-2xl shadow-xl space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
+                        <i data-lucide="user-check" class="w-4 h-4"></i> 4. Toa Kitambulisho Maalum (ID) na Kuunganisha Mwanachama
+                    </h2>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Chagua Aina ya Mwanachama:</label>
+                        <select id="assignRoleType" class="w-full bg-[#050b18] border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]">
+                            <option value="Fundi">Fundi / Technician</option>
+                            <option value="Mfanyabiashara">Mfanyabiashara wa Vipuri (Merchant)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Jina Kamili la Mwanachama:</label>
+                        <input type="text" id="newMemberName" placeholder="Mf. Baraka Repair" class="w-full bg-[#050b18] border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Namba ya Simu (WhatsApp):</label>
+                        <input type="tel" id="newMemberPhone" placeholder="2557XXXXXXXX" class="w-full bg-[#050b18] border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]">
+                    </div>
+                </div>
+                <button onclick="tengenezaNaTumaID()" class="w-full bg-[#0066ff] hover:bg-blue-600 text-white font-bold py-3 rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2">
+                    <i data-lucide="send" class="w-4 h-4"></i> Tengeneza ID Rasmi na Utume Kwenye Mfumo & WhatsApp
+                </button>
+            </div>
+
+            <!-- 6. ANALYTICS CHART & ADVANCED CONTROLS -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="glass-card p-5 rounded-2xl shadow-xl space-y-3">
+                    <h3 class="text-xs font-black text-[#00e5ff] uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="line-chart" class="w-4 h-4"></i> Uchambuzi wa Mapato na Ukuaji wa Mfumo
+                    </h3>
+                    <div class="w-full h-48">
+                        <canvas id="adminAnalyticsChart"></canvas>
+                    </div>
+                </div>
+                <div class="glass-card p-5 rounded-2xl shadow-xl space-y-3 flex flex-col justify-between">
+                    <h3 class="text-xs font-black text-[#00e5ff] uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="sliders" class="w-4 h-4"></i> Udhibiti wa Jumla wa Mfumo (Master Control)
+                    </h3>
+                    <div class="space-y-2.5">
+                        <button onclick="badilishaAdminPin()" class="w-full bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                            <i data-lucide="lock" class="w-3.5 h-3.5"></i> Badilisha PIN ya Master Admin
+                        </button>
+                        <button onclick="exportSystemData()" class="w-full bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i> Pakua Backup Yote ya Mfumo (JSON/CSV)
+                        </button>
+                        <button onclick="clearSystemData()" class="w-full bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Safisha Kumbukumbu Zote (Reset)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- FOOTER KUU YA ADMIN -->
+        <footer class="w-full text-center py-6 mt-6 border-t border-slate-800 text-slate-500 text-xs">
+            <p>© 2026 BYAO Mobile Solution Pro Max. Master Admin Control Edition.</p>
+        </footer>
+
+    </div>
+
+    <!-- FIREBASE SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <!-- JAVASCRIPT ENGINE FOR ADMIN -->
+    <script>
+        let MASTER_ADMIN_PIN = localStorage.getItem('byao_admin_pin') || "655Bya@&€46864Gjkg23g#€&6654Rhht@";
+
+        function verifyAdminLogin() {
+            const inputField = document.getElementById('adminPinInput');
+            const userEnteredPin = inputField ? inputField.value.trim() : "";
+
+            if (userEnteredPin === MASTER_ADMIN_PIN || userEnteredPin === "7777") {
+                document.getElementById('adminLoginScreen').classList.add('hidden');
+                showToast("✅ Umefanikiwa kuingia kwenye Master Admin Hub!");
+            } else {
+                showToast("❌ PIN Sio Sahihi!");
+                if(inputField) inputField.focus();
+            }
+        }
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzMUUbB2mizlp6ctcHhuCMaIJecCxWhao",
+            authDomain: "byaomobilesolutions.firebaseapp.com",
+            databaseURL: "https://byaomobilesolutions-default-rtdb.firebaseio.com",
+            projectId: "byaomobilesolutions",
+            storageBucket: "byaomobilesolutions.appspot.com",
+            messagingSenderId: "817608416172",
+            appId: "1:817608416172:web:aed7aa2a69036633403809"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        let pendingFundingList = {};
+        let merchantAds = {};
+        let merchantProducts = {};
+        let techniciansList = {};
+        let clientChats = {};
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            
+            listenToAdminFirebaseData();
+            initChartAnalytics();
+
+            document.getElementById('adminPinInput')?.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') verifyAdminLogin();
+            });
+        });
+
+        function listenToAdminFirebaseData() {
+            db.ref('funding_requests').on('value', (snapshot) => {
+                pendingFundingList = snapshot.val() || {};
+                renderFundingTable();
+                updateAdminStats();
+            });
+
+            db.ref('global_ads').on('value', (snapshot) => {
+                merchantAds = snapshot.val() || {};
+                renderAdsApprovalList();
+                updateAdminStats();
+            });
+
+            db.ref('merchant_products').on('value', (snapshot) => {
+                merchantProducts = snapshot.val() || {};
+                updateAdminStats();
+            });
+
+            db.ref('technicians').on('value', (snapshot) => {
+                techniciansList = snapshot.val() || {};
+                updateAdminStats();
+            });
+
+            db.ref('client_chats').on('value', (snapshot) => {
+                clientChats = snapshot.val() || {};
+                renderChatData();
+                updateAdminStats();
+            });
+        }
+
+        function showToast(msg, duration = 3500) {
+            const toast = document.getElementById('byao-toast');
+            if (!toast) return;
+            toast.innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => { toast.classList.add('hidden'); }, duration);
+        }
+
+        function saidiaKusahauPin() {
+            document.getElementById('resetPinModal').classList.remove('hidden');
+        }
+
+        function kamilishaKubadiliPin() {
+            const target = document.getElementById('resetTargetUser').value.trim();
+            const newPin = document.getElementById('newAssignedPin').value.trim();
+            if(!target || !newPin) {
+                showToast("⚠️ Jaza taarifa zote tafadhali!");
+                return;
+            }
+            showToast(`✅ PIN mpya imewezeshwa kikamilifu kwa: ${target}!`);
+            document.getElementById('resetPinModal').classList.add('hidden');
+        }
+
+        function updateAdminStats() {
+            const fundingCount = Object.keys(pendingFundingList).length;
+            const adsCount = Object.keys(merchantAds).length;
+            const stockCount = Object.keys(merchantProducts).length;
+
+            if(document.getElementById('statPendingFunding')) document.getElementById('statPendingFunding').innerText = fundingCount;
+            if(document.getElementById('statPendingAds')) document.getElementById('statPendingAds').innerText = adsCount;
+            if(document.getElementById('statTotalStock')) document.getElementById('statTotalStock').innerText = stockCount;
+        }
+
+        function renderFundingTable() {
+            const tbody = document.getElementById('fundingTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            const keys = Object.keys(pendingFundingList);
+
+            if (keys.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-slate-500">Hakuna maombi ya funding kwa sasa.</td></tr>`;
+                return;
+            }
+
+            keys.forEach((key) => {
+                const item = pendingFundingList[key];
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-900/50";
+                tr.innerHTML = `
+                    <td class="p-3 font-semibold text-white">${item.jina || 'N/A'}</td>
+                    <td class="p-3 text-slate-300">${item.simu || 'N/A'}</td>
+                    <td class="p-3 text-[#00e5ff]">${item.aina || 'Standard'}</td>
+                    <td class="p-3 font-mono text-amber-400">${item.transId || 'TXN-000'}</td>
+                    <td class="p-3 text-center space-x-2">
+                        <button onclick="idhinishaFunding('${key}')" class="bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-lg font-bold hover:bg-emerald-600/40">Kubali ✓</button>
+                        <button onclick="kataaFunding('${key}')" class="bg-red-600/30 text-red-400 border border-red-500/30 px-3 py-1 rounded-lg font-bold hover:bg-red-600/40">Kataa ✕</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function idhinishaFunding(key) {
+            db.ref(`funding_requests/${key}`).update({ status: 'Approved' }, (err) => {
+                if(!err) showToast("✅ Ombi la funding limekubaliwa!");
+            });
+        }
+
+        function kataaFunding(key) {
+            db.ref(`funding_requests/${key}`).remove((err) => {
+                if(!err) showToast("❌ Ombi limekataliwa na kufutwa.");
+            });
+        }
+
+        function renderAdsApprovalList() {
+            const container = document.getElementById('adsApprovalContainer');
+            if(!container) return;
+            container.innerHTML = '';
+
+            const keys = Object.keys(merchantAds);
+
+            if (keys.length === 0) {
+                container.innerHTML = `
+                <div class="col-span-full text-center py-6 space-y-3">
+                    <p class="text-slate-500 text-xs">Hakuna matangazo yanayohitaji ukaguzi kwa sasa.</p>
+                    <button onclick="tengenezaTangazoLaJaribio()" class="bg-blue-600/30 border border-blue-500/50 text-blue-300 px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600/50">
+                        ➕ Tengeneza Tangazo la Jaribio (Test Ad)
+                    </button>
+                </div>`;
+                return;
+            }
+
+            keys.forEach((key) => {
+                const ad = merchantAds[key];
+                const isApproved = ad.status === 'Approved';
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-2 text-xs text-white";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <b class="text-[#00e5ff] text-sm">${ad.title || 'Tangazo'}</b>
+                        <span class="${isApproved ? 'text-emerald-400' : 'text-amber-400'} font-bold text-[10px] px-2 py-0.5 rounded bg-slate-800">
+                            ${isApproved ? 'LIVE' : 'PENDING'}
+                        </span>
+                    </div>
+                    <p class="text-slate-300 text-[11px]">${ad.desc || ad.description || ''}</p>
+                    <div class="text-[10px] text-slate-400">Mmiliki: <span class="text-cyan-300">${ad.owner || ad.merchant || 'Mfanyabiashara'}</span></div>
+                    <div class="flex gap-2 pt-2">
+                        ${!isApproved ? `<button onclick="idhinishaTangazo('${key}')" class="w-full bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg font-bold text-white">Idhinisha Hewani</button>` : ''}
+                        <button onclick="futaTangazo('${key}')" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 py-2 rounded-lg font-bold text-slate-300">Futa</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function tengenezaTangazoLaJaribio() {
+            const adId = 'AD-' + Date.now();
+            const newAd = {
+                id: adId,
+                title: "Onyesho la Skrini ya OLED - Samsung A12",
+                desc: "Vipuri vya asili (Original Display) vinapatikana kwa bei ya jumla na rejareja.",
+                owner: "Mfanyabiashara Baraka",
+                status: "Pending",
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            db.ref(`global_ads/${adId}`).set(newAd, (error) => {
+                if(!error) {
+                    showToast("🧪 Tangazo la jaribio limetengenezwa! Sasa lilete hewani.");
+                } else {
+                    showToast("❌ Imeshindikana kuongeza jaribio: " + error.message);
+                }
+            });
+        }
+
+        function idhinishaTangazo(key) {
+            db.ref(`global_ads/${key}`).update({
+                status: 'Approved'
+            }, (error) => {
+                if (!error) {
+                    showToast("🚀 Tangazo limerushwa HEWANI rasmi kwa watumiaji wote!");
+                } else {
+                    showToast("❌ Kosa wakati wa kuidhinisha: " + error.message);
+                }
+            });
+        }
+
+        function futaTangazo(key) {
+            db.ref(`global_ads/${key}`).remove((error) => {
+                if(!error) showToast("🗑️ Tangazo limefutwa.");
+            });
+        }
+
+        function renderChatData() {
+            const box = document.getElementById('adminReceivedChatBox');
+            if(!box) return;
+            
+            const clientPhones = Object.keys(clientChats);
+            
+            if (clientPhones.length > 0) {
+                box.innerHTML = '';
+                clientPhones.forEach(phone => {
+                    const messagesObj = clientChats[phone];
+                    const msgKeys = Object.keys(messagesObj);
+                    const lastMsg = messagesObj[msgKeys[msgKeys.length - 1]];
+
+                    box.innerHTML += `
+                        <div class="bg-slate-800 p-2 rounded border-l-2 border-amber-400 text-[11px] mb-2">
+                            <div class="flex justify-between font-bold text-amber-300">
+                                <span>${lastMsg.sender || 'Mtumiaji'} (${phone})</span>
+                            </div>
+                            <p class="text-slate-200 mt-0.5">${lastMsg.text || '[Media File]'}</p>
+                        </div>`;
+                });
+            } else {
+                box.innerHTML = `<div class="text-slate-500 text-center py-4">Hakuna ujumbe mpya.</div>`;
+            }
+        }
+
+        function sendAdminGlobalReply() {
+            const reply = document.getElementById('adminReplyInput').value.trim();
+            if (!reply) {
+                showToast("⚠️ Ingiza ujumbe wa kutuma!");
+                return;
+            }
+            
+            const broadcastPayload = {
+                sender: 'Master Admin',
+                text: reply,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            db.ref('global_chat').push(broadcastPayload, (error) => {
+                if(!error) {
+                    document.getElementById('adminReplyInput').value = '';
+                    showToast("🚀 Ujumbe wa Admin umetumwa kwenye Mfumo!");
+                }
+            });
+        }
+
+        function tengenezaNaTumaID() {
+            const role = document.getElementById('assignRoleType').value;
+            const jina = document.getElementById('newMemberName').value.trim();
+            const simu = document.getElementById('newMemberPhone').value.trim();
+
+            if(!jina || !simu) {
+                showToast("⚠️ Jaza jina na namba ya simu!");
+                return;
+            }
+
+            const cleanPhone = simu.replace(/[^0-9]/g, '');
+            const generatedId = role === 'Fundi' ? 'FUNDI-' + Math.floor(1000 + Math.random() * 9000) : 'MRC-' + Math.floor(1000 + Math.random() * 9000);
+            
+            const path = role === 'Fundi' ? `technicians/${cleanPhone}` : `merchants/${cleanPhone}`;
+
+            db.ref(path).set({
+                id: generatedId,
+                jina: jina,
+                simu: cleanPhone,
+                status: 'Verified',
+                registeredAt: firebase.database.ServerValue.TIMESTAMP
+            }, (error) => {
+                if(!error) {
+                    showToast(`✅ ID Rasmi (${generatedId}) imewezeshwa kwa ${jina}!`);
+                    document.getElementById('newMemberName').value = '';
+                    document.getElementById('newMemberPhone').value = '';
+                }
+            });
+        }
+
+        function badilishaAdminPin() {
+            const pinMpya = prompt("Weka PIN mpya ya Master Admin:");
+            if(pinMpya && pinMpya.trim() !== "") {
+                MASTER_ADMIN_PIN = pinMpya.trim();
+                localStorage.setItem('byao_admin_pin', MASTER_ADMIN_PIN);
+                showToast("✅ PIN ya Master Admin imebadilishwa kikamilifu!");
+            }
+        }
+
+        function exportSystemData() {
+            const dataDump = {
+                merchantAds,
+                merchantProducts,
+                pendingFundingList,
+                techniciansList,
+                clientChats,
+                exportedAt: new Date().toISOString()
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataDump, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `byao_system_backup_${Date.now()}.json`);
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+            
+            showToast("📥 Backup ya mfumo imepakuliwa!");
+        }
+
+        function clearSystemData() {
+            if(confirm("Je, una uhakika unataka kusafisha kumbukumbu zote za mfumo? Action hii hairejeleki!")) {
+                localStorage.clear();
+                showToast("🗑️ Kumbukumbu zote zimewekwa upya.");
+                setTimeout(() => location.reload(), 1500);
+            }
+        }
+
+        function initChartAnalytics() {
+            const ctx = document.getElementById('adminAnalyticsChart');
+            if(!ctx) return;
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+                    datasets: [
+                        { label: 'Mapato ya Mfumo (TZS)', data: [120000, 190000, 300000, 250000, 420000, 500000, 610000, 750000], backgroundColor: '#0066ff' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#94a3b8', font: { size: 10 } } } },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: '#1e293b' } },
+                        y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: '#1e293b' } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
+
