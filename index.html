@@ -264,6 +264,26 @@
       </div>
 
     </div>
+        <!-- OVERLAY YA SPINNER (INATOKEA WAKATI NETWORK IMEKATA) -->
+    <div id="offlineOverlay" class="hidden fixed inset-0 z-[9999] bg-[#030712]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 transition-all duration-300">
+        <div class="relative flex items-center justify-center mb-6">
+            <!-- Outer Glowing Ring -->
+            <div class="w-20 h-20 border-4 border-cyan-500/20 border-t-cyan-400 border-r-blue-500 rounded-full animate-spin"></div>
+            <!-- Inner Icon -->
+            <i data-lucide="wifi-off" class="w-8 h-8 text-cyan-400 absolute animate-pulse"></i>
+        </div>
+        
+        <h2 class="text-xl font-bold text-white tracking-wide">Mawasiliano Yamekatika</h2>
+        <p class="text-sm text-gray-400 text-center max-w-xs mt-2">
+            Inajaribu kurejesha mtandao... Unaweza kuendelea kutumia mfumo katika hali ya offline.
+        </p>
+
+        <div class="mt-6 flex items-center space-x-2 text-xs text-cyan-400 bg-cyan-950/40 border border-cyan-800/50 px-4 py-2 rounded-full">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+            <span>Inafanya kazi kutoka Cache ya Simu</span>
+        </div>
+    </div>
+
   </main>
 
   <!-- Footer Info -->
@@ -390,6 +410,45 @@
         document.getElementById('logoutBtn')?.classList.remove('hidden');
       }
     })();
+        <!-- JS YA PWA NA NETWORK MONITORING -->
+    <script>
+        // Initialize Lucide Icons (Kama unatumia Lucide)
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        // 1. Sajili Service Worker ya PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker Imesajiliwa:', reg.scope))
+                    .catch(err => console.error('Kosa la Service Worker:', err));
+            });
+        }
+
+        // 2. Mfumo wa Kutambua Network (Online/Offline Monitor)
+        const offlineOverlay = document.getElementById('offlineOverlay');
+
+        function updateNetworkStatus() {
+            if (navigator.onLine) {
+                // Network ipo: Ficha Overlay ya Spinner
+                offlineOverlay.classList.add('hidden');
+            } else {
+                // Network imekata: Onyesha Spinner Overlay
+                offlineOverlay.classList.remove('hidden');
+            }
+        }
+
+        // Listeners za mabadiliko ya mtandao
+        window.addEventListener('online', updateNetworkStatus);
+        window.addEventListener('offline', updateNetworkStatus);
+
+        // Kagua mtandao mara moja wakati ukurasa unazinduka
+        updateNetworkStatus();
+    </script>
+</body>
+</html>
+
   </script>
 </body>
 </html>
