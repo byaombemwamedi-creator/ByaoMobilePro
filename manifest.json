@@ -3,17 +3,21 @@
   "name": "BYAO Mobile Solution - Gateway Portal Pro Max",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/5968/5968267.png",
+      "src": "./byao-image.png",
       "sizes": "192x192",
-      "type": "byao-image.png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/5968/5968267.png",
+      "src": "./byao-image.png",
       "sizes": "512x512",
-      "type": "byao-image.png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
+  "id": "./",
   "start_url": "./index.html",
+  "scope": "./",
   "background_color": "#030712",
   "theme_color": "#050b18",
   "display": "standalone",
