@@ -265,7 +265,8 @@
       </div>
 
     </div>
-        <!-- OVERLAY YA SPINNER (INATOKEA WAKATI NETWORK IMEKATA) -->
+
+    <!-- OVERLAY YA SPINNER (INATOKEA WAKATI NETWORK IMEKATA) -->
     <div id="offlineOverlay" class="hidden fixed inset-0 z-[9999] bg-[#030712]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 transition-all duration-300">
         <div class="relative flex items-center justify-center mb-6">
             <!-- Outer Glowing Ring -->
@@ -294,14 +295,9 @@
 
   <!-- Script ya Logic & Router -->
   <script>
-    lucide.createIcons();
-
-    const ROLE_ROUTES = {
-      'admin': 'admin.html',
-      'fundi': 'fundi.html',
-      'mfanyabiashara': 'mfanyabiashara.html',
-      'mteja': 'mteja.html'
-    };
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 
     let adminFailedAttempts = 0;
     const MASTER_ADMIN_PIN = "2026";
@@ -327,8 +323,8 @@
       }
     }
 
-    function handleLogin(event) {
-      event.preventDefault();
+    function handleAuth(event) {
+      if (event) event.preventDefault();
 
       const role = document.getElementById('userRole').value;
       const name = document.getElementById('userName').value;
@@ -338,6 +334,11 @@
 
       const errorBanner = document.getElementById('errorCodeBanner');
       const errorMsgText = document.getElementById('errorMsgText');
+
+      if (!role) {
+        alert("Tafadhali chagua Wadhifa (Role) kwanza!");
+        return false;
+      }
 
       if (role === 'admin') {
         if (adminPin !== MASTER_ADMIN_PIN) {
@@ -361,7 +362,7 @@
               window.location.reload();
             }, 3000);
           }
-          return;
+          return false;
         }
       }
 
@@ -375,7 +376,9 @@
         location, 
         timestamp: new Date().getTime() 
       };
+
       localStorage.setItem('byao_user_session', JSON.stringify(userData));
+      localStorage.setItem('currentUser', JSON.stringify(userData));
 
       document.getElementById('loginForm').classList.add('hidden');
       errorBanner.classList.add('hidden');
@@ -385,9 +388,31 @@
       document.getElementById('welcomeText').innerText = `Karibu, ${name}!`;
 
       setTimeout(() => {
-        const targetPage = ROLE_ROUTES[role] || 'mteja.html';
-        window.location.href = targetPage;
-      }, 2500);
+        redirectToPage(role);
+      }, 1500);
+
+      return false;
+    }
+
+    function redirectToPage(role) {
+      let targetPage = 'mteja.html';
+      
+      switch(role) {
+          case 'admin':
+              targetPage = 'admin.html';
+              break;
+          case 'mfanyabiashara':
+              targetPage = 'mfanyabiashara.html';
+              break;
+          case 'mteja':
+              targetPage = 'mteja.html';
+              break;
+          case 'fundi':
+              targetPage = 'fundi.html';
+              break;
+      }
+
+      window.location.href = targetPage;
     }
 
     function contactAdminWhatsApp() {
@@ -401,6 +426,7 @@
     function forceSystemLogout() {
       if (confirm("Je, unataka kutoka kwenye mfumo ili kuingia na akaunti au role nyingine?")) {
         localStorage.removeItem('byao_user_session');
+        localStorage.removeItem('currentUser');
         window.location.reload();
       }
     }
@@ -411,93 +437,31 @@
         document.getElementById('logoutBtn')?.classList.remove('hidden');
       }
     })();
-        <!-- JS YA PWA NA NETWORK MONITORING -->
-    <script>
-        // Initialize Lucide Icons (Kama unatumia Lucide)
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
 
-        // 1. Sajili Service Worker ya PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker Imesajiliwa:', reg.scope))
-                    .catch(err => console.error('Kosa la Service Worker:', err));
-            });
-        }
+    // PWA Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('Service Worker Imesajiliwa:', reg.scope))
+          .catch(err => console.error('Kosa la Service Worker:', err));
+      });
+    }
 
-        // 1. Tambulisha kwanza element ya Overlay kutoka kwenye HTML
-const offlineOverlay = document.getElementById('offlineOverlay');
+    // Network Monitoring
+    const offlineOverlay = document.getElementById('offlineOverlay');
 
-// 2. Function ya kukagua Network Status
-function updateNetworkStatus() {
-    // Hakikisha element ipo kabla ya kuitumia
-    if (!offlineOverlay) return;
-
-    if (navigator.onLine) {
-        // Network ipo: Ficha Overlay ya Spinner
+    function updateNetworkStatus() {
+      if (!offlineOverlay) return;
+      if (navigator.onLine) {
         offlineOverlay.classList.add('hidden');
-    } else {
-        // Network imekata: Onyesha Spinner Overlay
+      } else {
         offlineOverlay.classList.remove('hidden');
-    }
-}
-
-// 3. Event Listeners za mabadiliko ya mtandao
-window.addEventListener('online', updateNetworkStatus);
-window.addEventListener('offline', updateNetworkStatus);
-
-// 4. Kagua mtandao mara moja wakati ukurasa unazinduka
-updateNetworkStatus();
-
-
-// 5. Function ya Auth / Login (Inaanza hapa na lazima ifungwe mwishoni na })
-   function handleAuth(event) {
-    if (event) event.preventDefault();
-
-    const role = document.getElementById('userRole').value;
-    const name = document.getElementById('userName').value;
-    const phone = document.getElementById('userPhone').value;
-    const location = document.getElementById('userLocation').value;
-
-    if (!role) {
-        alert("Tafadhali chagua Wadhifa (Role) kwanza!");
-        return false;
+      }
     }
 
-    // Hifadhi taarifa mwilini mwa browser
-    const userData = { name, phone, location, role };
-    localStorage.setItem('currentUser', JSON.stringify(userData));
-
-    // Mfumo wa Redirection
-    redirectToPage(role);
-    return false;
-}
-
-function redirectToPage(role) {
-    let targetPage = './index.html';
-    
-    switch(role) {
-        case 'admin':
-            targetPage = './admin.html';
-            break;
-        case 'mfanyabiashara':
-            targetPage = './mfanyabiashara.html';
-            break;
-        case 'mteja':
-            targetPage = './mteja.html';
-            break;
-        case 'fundi':
-            targetPage = './fundi.html';
-            break;
-    }
-
-    // Elekeza ukurasa mpya
-    window.location.href = targetPage;
-}
-
-
+    window.addEventListener('online', updateNetworkStatus);
+    window.addEventListener('offline', updateNetworkStatus);
+    updateNetworkStatus();
   </script>
 </body>
 </html>
