@@ -1,4 +1,4 @@
-const CACHE_NAME = 'byao-mobile-v2';
+const CACHE_NAME = 'byao-mobile-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -6,20 +6,18 @@ const ASSETS_TO_CACHE = [
   './fundi.html',
   './mfanyabiashara.html',
   './mteja.html',
+  './byao-image.png',
   'https://cdn.tailwindcss.com',
   'https://unpkg.com/lucide@latest'
 ];
 
-// Installa Service Worker na uhifadhi Cache
 self.addEventListener('install', (e) => {
+  self.skipWaiting();
   e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    }).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
   );
 });
 
-// Anzisha Service Worker na ufute Cache za zamani
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -34,21 +32,14 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Chukua data kutoka Cache ikiwa hakuna mtandao (Network-first with Cache Fallback)
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     fetch(e.request)
       .then((response) => {
-        // Hifadhi nakala mpya ikiwa mtandao upo
         const resClone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(e.request, resClone);
-        });
+        caches.open(CACHE_NAME).then((cache) => cache.put(e.request, resClone));
         return response;
       })
-      .catch(() => {
-        // Mtandao ukikosa, rudisha faili kutoka Cache
-        return caches.match(e.request);
-      })
+      .catch(() => caches.match(e.request))
   );
 });
