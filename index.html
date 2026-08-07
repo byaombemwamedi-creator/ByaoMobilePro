@@ -198,7 +198,8 @@
       </div>
 
       <!-- Form ya Kujaza Taarifa na Role -->
-      <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+      <form id="loginForm" onsubmit="return handleAuth(event)" class="space-y-4">
+
         
         <!-- Uchaguzi wa Role -->
         <div>
@@ -426,28 +427,76 @@
             });
         }
 
-        // 2. Mfumo wa Kutambua Network (Online/Offline Monitor)
-        const offlineOverlay = document.getElementById('offlineOverlay');
+        // 1. Tambulisha kwanza element ya Overlay kutoka kwenye HTML
+const offlineOverlay = document.getElementById('offlineOverlay');
 
-        function updateNetworkStatus() {
-            if (navigator.onLine) {
-                // Network ipo: Ficha Overlay ya Spinner
-                offlineOverlay.classList.add('hidden');
-            } else {
-                // Network imekata: Onyesha Spinner Overlay
-                offlineOverlay.classList.remove('hidden');
-            }
-        }
+// 2. Function ya kukagua Network Status
+function updateNetworkStatus() {
+    // Hakikisha element ipo kabla ya kuitumia
+    if (!offlineOverlay) return;
 
-        // Listeners za mabadiliko ya mtandao
-        window.addEventListener('online', updateNetworkStatus);
-        window.addEventListener('offline', updateNetworkStatus);
+    if (navigator.onLine) {
+        // Network ipo: Ficha Overlay ya Spinner
+        offlineOverlay.classList.add('hidden');
+    } else {
+        // Network imekata: Onyesha Spinner Overlay
+        offlineOverlay.classList.remove('hidden');
+    }
+}
 
-        // Kagua mtandao mara moja wakati ukurasa unazinduka
-        updateNetworkStatus();
-    </script>
-</body>
-</html>
+// 3. Event Listeners za mabadiliko ya mtandao
+window.addEventListener('online', updateNetworkStatus);
+window.addEventListener('offline', updateNetworkStatus);
+
+// 4. Kagua mtandao mara moja wakati ukurasa unazinduka
+updateNetworkStatus();
+
+
+// 5. Function ya Auth / Login (Inaanza hapa na lazima ifungwe mwishoni na })
+   function handleAuth(event) {
+    if (event) event.preventDefault();
+
+    const role = document.getElementById('userRole').value;
+    const name = document.getElementById('userName').value;
+    const phone = document.getElementById('userPhone').value;
+    const location = document.getElementById('userLocation').value;
+
+    if (!role) {
+        alert("Tafadhali chagua Wadhifa (Role) kwanza!");
+        return false;
+    }
+
+    // Hifadhi taarifa mwilini mwa browser
+    const userData = { name, phone, location, role };
+    localStorage.setItem('currentUser', JSON.stringify(userData));
+
+    // Mfumo wa Redirection
+    redirectToPage(role);
+    return false;
+}
+
+function redirectToPage(role) {
+    let targetPage = './index.html';
+    
+    switch(role) {
+        case 'admin':
+            targetPage = './admin.html';
+            break;
+        case 'mfanyabiashara':
+            targetPage = './mfanyabiashara.html';
+            break;
+        case 'mteja':
+            targetPage = './mteja.html';
+            break;
+        case 'fundi':
+            targetPage = './fundi.html';
+            break;
+    }
+
+    // Elekeza ukurasa mpya
+    window.location.href = targetPage;
+}
+
 
   </script>
 </body>
