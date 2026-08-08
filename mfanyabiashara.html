@@ -62,31 +62,23 @@
         Ujumbe wa Mfumo
     </div>
 
-    <!-- MODAL YA USALAMA: KUINGIA NA ID NA PIN -->
+    <!-- MODAL YA USAJILI / KUINGIA KWA TAARIFA ZA DUKA (BILA PIN YA ZAMANI) -->
     <div id="loginScreen" class="fixed inset-0 bg-[#050b18]/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="w-full max-w-md space-y-4">
             <div class="glass-card p-6 rounded-2xl text-center space-y-2 border border-[#00e5ff]/30">
                 <span class="bg-[#0066ff] text-white text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-wider shadow-md shadow-blue-500/30">MERCHANT SECURE PORTAL</span>
                 <h2 class="text-xl font-black text-white tracking-tight mt-1">BYAO MERCHANT HUB 2026</h2>
-                <p class="text-slate-400 text-xs">Ingiza taarifa za Duka au Tengeneza Mfanyabiashara ID</p>
+                <p class="text-slate-400 text-xs">Weka taarifa za Duka lako ili uanze kutumia mfumo</p>
             </div>
             <div class="glass-card p-6 rounded-2xl space-y-4">
                 <div class="space-y-3 text-xs">
                     <div>
                         <label class="block font-bold text-slate-300 mb-1">Jina la Duka / Mfanyabiashara:</label>
-                        <input type="text" id="loginJina" value="Byao Electronics Store" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-white focus:outline-none focus:border-[#00e5ff] transition">
+                        <input type="text" id="loginJina" placeholder="Mf. Byao Electronics Store" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-white focus:outline-none focus:border-[#00e5ff] transition">
                     </div>
                     <div>
                         <label class="block font-bold text-slate-300 mb-1">Eneo la Duka (Location):</label>
-                        <input type="text" id="loginLocation" value="Kariakoo, Dar es Salaam" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-white focus:outline-none focus:border-[#00e5ff] transition">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-300 mb-1">PIN / Mot de passe:</label>
-                        <input type="password" id="loginPass" placeholder="Weka PIN (Msingi: 2026)..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-white focus:outline-none focus:border-[#00e5ff] transition">
-                    </div>
-                    <div class="pt-2 border-t border-slate-800">
-                        <label class="block font-bold text-[#00e5ff] mb-1">🔑 Badili PIN Mpya (Kama unataka):</label>
-                        <input type="password" id="newPinInput" placeholder="Weka PIN mpya..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-[#00e5ff] transition">
+                        <input type="text" id="loginLocation" placeholder="Mf. Kariakoo, Dar es Salaam" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-white focus:outline-none focus:border-[#00e5ff] transition">
                     </div>
                 </div>
                 <button onclick="fanyaLoginMfanyabiashara()" class="w-full bg-[#0066ff] hover:bg-blue-600 text-white font-black py-3 px-4 rounded-xl text-xs transition shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2">
@@ -111,7 +103,7 @@
                 <div id="storeNameDisplay" class="text-xs font-black text-white">Byao Store Pro</div>
                 <div id="merchantIdDisplay" class="text-[10px] text-amber-400 font-mono font-bold">ID: MRC-8842</div>
             </div>
-            <button onclick="logoutMerchant()" class="bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-300 p-2 rounded-xl text-xs transition flex items-center gap-1">
+            <button onclick="logoutMerchant()" class="bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-300 p-2 rounded-xl text-xs transition flex items-center gap-1" title="Badili Taarifa / Toka">
                 <i data-lucide="log-out" class="w-4 h-4"></i>
             </button>
         </div>
@@ -346,8 +338,7 @@
         const db = firebase.database();
         const storage = firebase.storage();
 
-        // 2. UNIFIED LOCAL STORAGE KEYS
-        let storePin = localStorage.getItem('byao_merchant_pin') || '2026';
+        // 2. UNIFIED LOCAL STORAGE KEYS (BILA PIN YA ZAMANI)
         let merchantData = JSON.parse(localStorage.getItem('byao_merchant_session')) || null;
         
         let bidhaaList = JSON.parse(localStorage.getItem('byao_merchant_products')) || [
@@ -364,6 +355,9 @@
             
             if (merchantData) {
                 renderMerchantDashboard(merchantData);
+            } else {
+                // Onyesha modal ya kujaza taarifa kama haijawahi kujazwa
+                document.getElementById('loginScreen').classList.remove('hidden');
             }
 
             // Anza Kusawazisha Data na Firebase Cloud Papo kwa Papo
@@ -489,23 +483,15 @@
         function fanyaLoginMfanyabiashara() {
             const jinaDuka = document.getElementById('loginJina').value.trim();
             const location = document.getElementById('loginLocation').value.trim();
-            const passInput = document.getElementById('loginPass').value.trim();
-            const newPin = document.getElementById('newPinInput').value.trim();
 
-            if (passInput !== storePin) {
-                showToast("❌ Mot de passe / PIN sio sahihi!");
+            if (!jinaDuka) {
+                showToast("⚠️ Tafadhali jaza jina la duka au mfanyabiashara!");
                 return;
-            }
-
-            if (newPin) {
-                storePin = newPin;
-                localStorage.setItem('byao_merchant_pin', newPin);
-                showToast("🔑 PIN Mpya imebadilishwa kikamilifu!");
             }
 
             let mId = merchantData ? merchantData.id : ("MRC-" + Math.floor(1000 + Math.random() * 9000));
             merchantData = {
-                name: jinaDuka || "Byao Electronics Store",
+                name: jinaDuka,
                 location: location || "Kariakoo",
                 id: mId
             };
@@ -522,7 +508,7 @@
             pakarishaBidhaa();
             pakarishaMatangazo();
             setupFirebaseRealtimeSync();
-            showToast(`✅ Umefanikiwa kuingia, ${data.name}!`);
+            showToast(`✅ Karibu kwenye Dashibodi, ${data.name}!`);
         }
 
         function logoutMerchant() {
@@ -547,7 +533,7 @@
         function hifadhiBidhaaDukani(e) {
             e.preventDefault();
             if (!merchantData || !merchantData.id) {
-                showToast("⚠️ Ingia kwanza kwenye mfumo!");
+                showToast("⚠️ Tafadhali jaza taarifa za duka kwanza!");
                 return;
             }
 
@@ -610,8 +596,6 @@
             showToast("🗑️ Bidhaa imefutwa!");
         }
 
-        // --- SEHEMU ILIYOREKEBISHWA YA MATANGAZO NA UPAKIAJI WA MEDIA ---
-
         function previewAdMedia(event) {
             const file = event.target.files[0];
             if (file) {
@@ -620,7 +604,6 @@
                 const previewContainer = document.getElementById('mediaPreviewBox');
                 if (!previewBox) return;
                 
-                // Tumia Blob URL kwa ufunguzi na uonyeshaji wa haraka wa video na picha
                 const objectUrl = URL.createObjectURL(file);
                 
                 previewBox.innerHTML = '';
@@ -635,88 +618,87 @@
         }
 
         async function rushaTangazoHewani() {
-    if (!merchantData || !merchantData.id) {
-        showToast("⚠️ Hafahamiki! Ingia tena kama Mfanyabiashara.");
-        return;
-    }
-    
-    const title = document.getElementById('adTitle').value.trim();
-    const desc = document.getElementById('adDescription').value.trim();
-    const durationHours = parseInt(document.getElementById('adDuration').value) || 24;
-    const btn = document.getElementById('btnRushaTangazo');
-
-    if (!title) {
-        showToast("⚠️ Ingiza kichwa cha tangazo!");
-        return;
-    }
-
-    let mediaUrl = "";
-    let mediaType = "";
-
-    if (selectedAdFile) {
-        const originalBtnText = btn.innerHTML;
-        btn.innerText = "⏳ Inapakia Picha/Video kwenye Cloud...";
-        btn.disabled = true;
-
-        try {
-            const cleanName = selectedAdFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-            const fileRef = storage.ref(`ads_media/${Date.now()}_${cleanName}`);
+            if (!merchantData || !merchantData.id) {
+                showToast("⚠️ Weka taarifa za duka kwanza.");
+                return;
+            }
             
-            const uploadTask = fileRef.put(selectedAdFile);
-            await new Promise((resolve, reject) => {
-                uploadTask.on('state_changed', 
-                    (snapshot) => {
-                        const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-                        btn.innerText = `⏳ Inapakia Media... ${progress}%`;
-                    }, 
-                    (error) => reject(error), 
-                    () => resolve()
-                );
-            });
+            const title = document.getElementById('adTitle').value.trim();
+            const desc = document.getElementById('adDescription').value.trim();
+            const durationHours = parseInt(document.getElementById('adDuration').value) || 24;
+            const btn = document.getElementById('btnRushaTangazo');
 
-            mediaUrl = await fileRef.getDownloadURL();
-            mediaType = selectedAdFile.type.startsWith('video/') ? 'video' : 'image';
-        } catch (error) {
-            console.error("Storage Upload Error:", error);
-            showToast("⚠️ Imefeli kupakia media, tangazo litaenda bila media.");
-        }
-        
-        btn.innerHTML = originalBtnText;
-        btn.disabled = false;
-    }
+            if (!title) {
+                showToast("⚠️ Ingiza kichwa cha tangazo!");
+                return;
+            }
 
-    const adId = "AD-" + Date.now();
-    const newAd = {
-        id: adId,
-        merchantId: merchantData.id,
-        owner: merchantData.name || "Mfanyabiashara",
-        title: title,
-        desc: desc,
-        mediaUrl: mediaUrl,
-        mediaType: mediaType,
-        durationHours: durationHours,
-        status: 'pending',
-        isApproved: false,
-        createdAt: Date.now(),
-        expiresAt: 0,
-        date: new Date().toLocaleDateString()
-    };
+            let mediaUrl = "";
+            let mediaType = "";
 
-    try {
-        // Tumia set() yenye adId ili matangazo yote yaingie Node moja kuu ya `global_ads`
-        await db.ref('global_ads/' + adId).set(newAd);
-        showToast("🕒 Tangazo limetumwa kwa Admin Mkuu!");
-    } catch (err) {
-        console.error(err);
-        showToast("❌ Tatizo la mtandao, jaribu tena.");
-        return;
-    }
+            if (selectedAdFile) {
+                const originalBtnText = btn.innerHTML;
+                btn.innerText = "⏳ Inapakia Picha/Video kwenye Cloud...";
+                btn.disabled = true;
 
-    selectedAdFile = null;
-    document.getElementById('adTitle').value = '';
-    document.getElementById('adDescription').value = '';
-}
+                try {
+                    const cleanName = selectedAdFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+                    const fileRef = storage.ref(`ads_media/${Date.now()}_${cleanName}`);
+                    
+                    const uploadTask = fileRef.put(selectedAdFile);
+                    await new Promise((resolve, reject) => {
+                        uploadTask.on('state_changed', 
+                            (snapshot) => {
+                                const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+                                btn.innerText = `⏳ Inapakia Media... ${progress}%`;
+                            }, 
+                            (error) => reject(error), 
+                            () => resolve()
+                        );
+                    });
 
+                    mediaUrl = await fileRef.getDownloadURL();
+                    mediaType = selectedAdFile.type.startsWith('video/') ? 'video' : 'image';
+                } catch (error) {
+                    console.error("Storage Upload Error:", error);
+                    showToast("⚠️ Imefeli kupakia media, tangazo litaenda bila media.");
+                }
+                
+                btn.innerHTML = originalBtnText;
+                btn.disabled = false;
+            }
+
+            const adId = "AD-" + Date.now();
+            const newAd = {
+                id: adId,
+                merchantId: merchantData.id,
+                owner: merchantData.name || "Mfanyabiashara",
+                title: title,
+                desc: desc,
+                mediaUrl: mediaUrl,
+                mediaType: mediaType,
+                durationHours: durationHours,
+                status: 'pending',
+                isApproved: false,
+                createdAt: Date.now(),
+                expiresAt: 0,
+                date: new Date().toLocaleDateString()
+            };
+
+            try {
+                await db.ref('global_ads/' + adId).set(newAd);
+                showToast("🕒 Tangazo limetumwa kwa Admin Mkuu!");
+            } catch (err) {
+                console.error(err);
+                showToast("❌ Tatizo la mtandao, jaribu tena.");
+                return;
+            }
+
+            selectedAdFile = null;
+            document.getElementById('adTitle').value = '';
+            document.getElementById('adDescription').value = '';
+            document.getElementById('adMediaInput').value = '';
+            document.getElementById('mediaPreviewBox').classList.add('hidden');
         }
 
         function pakarishaMatangazo() {
@@ -780,8 +762,6 @@
 
             container.innerHTML = html || `<div class="text-slate-500 text-center py-2 text-xs">Hakuna matangazo uliyotuma.</div>`;
         }
-
-        // --- MWISHO WA SEHEMU ILIYOREKEBISHWA ---
 
         function renewAd(adId) {
             db.ref('global_ads').once('value', (snapshot) => {
