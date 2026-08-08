@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="sw" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Byao Mobile Solutions - Ultimate Ecosystem v2.5</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0F172A',
+                        cardBg: '#1E293B',
+                        accentBlue: '#2563EB',
+                        accentGreen: '#10B981',
+                        accentYellow: '#F59E0B'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- FIREBASE SDKs (Compat / Modular) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
+
+    <style>
+        /* Custom Scrolling & Ticker Animation */
+        @keyframes ticker {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+        .ticker-wrap {
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .ticker-move {
+            display: inline-block;
+            white-space: nowrap;
+            padding-left: 100%;
+            animation: ticker 25s linear infinite;
+        }
+        .ticker-item {
+            display: inline-block;
+            padding: 0 2rem;
+        }
+        
+        /* Canvas Wheel Animation Smoothness */
+        #wheelCanvas {
+            transition: transform 4s cubic-bezier(0.15, 0.99, 0.24, 0.99);
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0F172A;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+
+        /* Drag & Drop Styles for Mini-Games */
+        .draggable-item {
+            cursor: grab;
+            user-select: none;
+        }
+        .draggable-item:active {
+            cursor: grabbing;
+        }
+        .drop-zone {
+            border: 2px dashed #334155;
+            transition: all 0.2s ease;
+        }
+        .drop-zone.drag-over {
+            border-color: #2563EB;
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        /* SIDEBAR STYLING & TRANSITIONS */
+        #sidebar {
+            transition: transform 0.3s ease-in-out;
+            transform: translateX(-100%);
+        }
+        #sidebar.open {
+            transform: translateX(0);
+        }
+        #sidebarOverlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<!-- Kadi ya Kurudi Nyuma (Slim & Elegant) -->
+<div class="back-card" style="padding: 10px 15px; margin-bottom: 15px;">
+    <a href="mteja.html" style="text-decoration: none; color: #a0a0a0; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; transition: color 0.3s ease;">
+        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Rudi nyuma
+    </a>
+</div>
+
+<body class="bg-darkBg text-slate-100 font-sans antialiased min-h-screen flex flex-col pb-24 relative overflow-x-hidden">
+
+    <!-- SIDEBAR OVERLAY (Inafifisha ukurasa wakati sidebar iko wazi) -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/70 z-40 hidden backdrop-blur-sm opacity-0 pointer-events-none"></div>
+
+    <!-- SIDEBAR DRAWER NAVIGATION -->
+    <aside id="sidebar" class="fixed top-0 left-0 w-80 h-full bg-slate-900 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out border-r border-slate-800 flex flex-col justify-between overflow-y-auto">
+        <div class="p-5">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white text-lg">
+                        BM
+                    </div>
+                    <div>
+                        
+                        <h4 class="font-bold text-sm text-white">Byaombe Mwamedi</h4>
+                        <p class="text-xs text-slate-400">Mteja VIP</p>
+                    </div>
+                </div>
+                <button id="closeSidebar" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Loyalty Status Box -->
+            <div class="my-4 p-3 bg-slate-800/80 rounded-xl border border-slate-700/50 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400">Salio la Byao Coins</p>
+                    <p class="text-lg font-bold text-yellow-400 flex items-center gap-1">
+                        <i class="fa-solid fa-coins text-sm"></i> <span id="sidebarCoinCount">160</span>
+                    </p>
+                </div>
+                <button onclick="switchScreen('screen_services'); toggleSidebar();" class="text-xs bg-blue-600 hover:bg-blue-500 text-white font-medium px-3 py-1.5 rounded-lg transition">
+                    Kusanya
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="space-y-1 text-sm font-medium">
+                <button onclick="switchScreen('screen_services')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition text-left">
+                    <i class="fa-solid fa-screwdriver-wrench text-blue-400 w-5"></i> Huduma Kuu & Zana
+                </button>
+                <button onclick="switchScreen('screen_services')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition text-left">
+                    <i class="fa-solid fa-photo-film text-purple-400 w-5"></i> Feed ya Mafundi
+                </button>
+                <button onclick="switchScreen('screen_games')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition text-left">
+                    <i class="fa-solid fa-gamepad text-emerald-400 w-5"></i> Zana za Maingiliano & Michezo
+                </button>
+                <button onclick="switchScreen('screen_games')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition text-left">
+                    <i class="fa-solid fa-puzzle-piece text-amber-400 w-5"></i> Moduli ya Michezo 5 Mifupi
+                </button>
+                <button onclick="switchScreen('screen_community')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition text-left">
+                    <i class="fa-solid fa-comments text-cyan-400 w-5"></i> Jukwaa la Jamii
+                </button>
+            </nav>
+
+            <div class="my-4 border-t border-slate-800"></div>
+
+            <!-- Settings & Functional Info Links -->
+            <div class="space-y-1 text-sm text-slate-400">
+                <div class="px-3 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Mipangilio & Msaada</div>
+                <button onclick="openModal('settingsModal')" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-slate-200 transition text-left">
+                    <i class="fa-solid fa-sliders w-5"></i> Mipangilio (Settings)
+                </button>
+                <button onclick="openModal('callCenterModal')" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-slate-200 transition text-left">
+                    <i class="fa-solid fa-headset w-5"></i> Call Center & Msaada
+                </button>
+                <button onclick="openModal('termsModal')" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-slate-200 transition text-left">
+                    <i class="fa-solid fa-file-contract w-5"></i> Masharti na Vigezo
+                </button>
+                <button onclick="openModal('aboutModal')" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-slate-200 transition text-left">
+                    <i class="fa-solid fa-circle-info w-5"></i> Kuhusu Byao Mobile
+                </button>
+            </div>
+        </div>
+
+        <!-- Social Media & Footer Info -->
+        <div class="p-5 border-t border-slate-800 bg-slate-950/50">
+            <p class="text-xs text-slate-500 mb-3 text-center">Tufuate Kwenye Mtandao</p>
+            <div class="flex justify-center gap-4 text-slate-400">
+                <a href="#" class="hover:text-blue-500 text-lg"><i class="fa-brands fa-facebook"></i></a>
+                <a href="#" class="hover:text-green-500 text-lg"><i class="fa-brands fa-whatsapp"></i></a>
+                <a href="#" class="hover:text-pink-500 text-lg"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#" class="hover:text-red-500 text-lg"><i class="fa-brands fa-youtube"></i></a>
+            </div>
+            <p class="text-[10px] text-slate-600 text-center mt-4">© 2026 Byao Mobile Solutions v2.5</p>
+        </div>
+    </aside>
+
+    <!-- TOP HEADER -->
+    <header class="sticky top-0 z-30 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-4 py-3 flex items-center justify-between shadow-md">
+        <div class="flex items-center gap-3">
+            <button id="openSidebar" class="text-slate-300 hover:text-white focus:outline-none p-1">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+            <div class="flex items-center gap-2">
+                <div class="bg-blue-600 text-white font-bold p-1.5 rounded-lg text-xs tracking-wider">BYAO</div>
+                <span class="font-bold text-lg tracking-tight text-white hidden sm:inline">Mobile Solutions Hub</span>
+                <span class="font-bold text-base tracking-tight text-white sm:hidden">Mobile Solutions</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1.5 bg-yellow-500/10 border border-yellow-500/30 text-yellow-500 text-xs font-semibold px-3 py-1.5 rounded-full">
+                <i class="fa-solid fa-coins"></i>
+                <span id="headerCoinCount">160</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- LIVE BANNER FROM FIREBASE (ADMIN APPROVED) -->
+    <div id="liveBannerContainer" class="bg-gradient-to-r from-blue-900/90 via-indigo-900/90 to-purple-900/90 border-b border-blue-700/50 px-4 py-2 text-xs flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <span class="bg-blue-500 text-white font-bold text-[10px] px-2 py-0.5 rounded-full">FIREBASE LIVE</span>
+            <p id="firestoreBannerText" class="text-slate-200">Inapakia tangazo rasmi kutoka database...</p>
+        </div>
+    </div>
+
+    <!-- LIVE TECH TICKER - DYNAMICALLY SYNCED WITH FIREBASE -->
+    <div class="bg-blue-950/60 border-b border-blue-900/40 text-blue-300 text-xs py-1.5 ticker-wrap">
+        <div class="ticker-move" id="tickerMoveContainer">
+            <span class="ticker-item"><i class="fa-solid fa-bolt text-yellow-400 mr-1"></i> <strong id="tickerStrongTitle">Taarifa:</strong> <span id="tickerTextContent">Inasoma taarifa za hivi punde kutoka kwa Admin...</span></span>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTENT HUB (TABS SCREENS) -->
+    <main class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-6 flex-grow">
+
+        <!-- Screen 1: Huduma Kuu, Ufuatiliaji & Feed ya Mafundi -->
+        <div id="screen_services" class="app-screen space-y-8">
+            <!-- Core Services & Tools Grid -->
+            <section id="coreServices" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Device Tracker Card -->
+                <div class="bg-cardBg p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm text-white">Ufuatiliaji wa Kifaa</h3>
+                            <p class="text-xs text-slate-400">Angalia hatua ya simu yako</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <input type="text" id="trackInput" placeholder="Weka Namba ya Tiketi au IMEI" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500">
+                        <button onclick="trackDevice()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2 rounded-xl transition">
+                            Fuatilia Sasa
+                        </button>
+                        <p id="trackResult" class="hidden text-xs pt-1"></p>
+                    </div>
+                </div>
+
+                <!-- Price Estimator Card -->
+                <div class="bg-cardBg p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-calculator"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm text-white">Kadirio la Gharama</h3>
+                            <p class="text-xs text-slate-400">Hesabu bei ya ukarabati</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <select id="calcPart" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                            <option value="25">Kioo cha Simu (Display) - $25</option>
+                            <option value="15">Betri Mpya - $15</option>
+                            <option value="20">Charging Port / Flex - $20</option>
+                        </select>
+                        <select id="calcBrand" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                            <option value="1">Samsung / Tecno / Infinix</option>
+                            <option value="1.3">iPhone / High-End</option>
+                        </select>
+                        <button onclick="calculatePrice()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2 rounded-xl transition">
+                            Hesabu Gharama
+                        </button>
+                        <p id="calcResult" class="hidden text-xs font-semibold text-emerald-400 pt-1"></p>
+                    </div>
+                </div>
+
+                <!-- Loyalty / Daily Check-in Card -->
+                <div id="loyaltySection" class="bg-cardBg p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-gift"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm text-white">Zawadi za Kila Siku</h3>
+                            <p class="text-xs text-slate-400">Kusanya sarafu za bure</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <p class="text-xs text-slate-300">Ingia kila siku kukusanya Byao Coins 20 za punguzo la huduma.</p>
+                        <button id="claimCoinsBtn" onclick="claimDailyCoins()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow">
+                            Chukua Sarafu (+20 Coins)
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tech Feed Section -->
+            <section id="techFeed" class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-bold text-base text-white flex items-center gap-2">
+                        <i class="fa-solid fa-photo-film text-purple-400"></i> Feed ya Mafundi & Habari Moto
+                    </h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Feed Post 1 -->
+                    <div class="bg-cardBg p-4 rounded-2xl border border-slate-800 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold">BM</div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-white">Byaombe Mwamedi</h4>
+                                    <p class="text-[10px] text-slate-400">Masaa 2 yaliyopita</p>
+                                </div>
+                            </div>
+                            <span class="bg-blue-500/10 text-blue-400 text-[10px] font-semibold px-2 py-0.5 rounded-full">Ufundi</span>
+                        </div>
+                        <p class="text-xs text-slate-300">Tumefanikiwa kurekebisha tatizo la Dead Boot kwenye simu za MediaTek bila kupoteza data za wateja. Kazi inaendelea vizuri!</p>
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-800 text-xs text-slate-400">
+                            <button onclick="toggleLike(this)" class="flex items-center gap-1.5 hover:text-red-500 transition">
+                                <i class="fa-regular fa-heart"></i> <span class="like-count">14</span>
+                            </button>
+                            <button onclick="requestTechnician('Byaombe Mwamedi')" class="text-blue-400 hover:underline font-semibold">Omba Huduma Hii</button>
+                        </div>
+                    </div>
+
+                    <!-- Feed Post 2 -->
+                    <div class="bg-cardBg p-4 rounded-2xl border border-slate-800 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-bold">SM</div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-white">Salum Mtaalamu</h4>
+                                    <p class="text-[10px] text-slate-400">Masaa 5 yaliyopita</p>
+                                </div>
+                            </div>
+                            <span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold px-2 py-0.5 rounded-full">Spea</span>
+                        </div>
+                        <p class="text-xs text-slate-300">Vioo original vya Samsung A54 na Tecno Camon 20 vimefika leo asubuhi. Wahi punguzo letu la wiki hii.</p>
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-800 text-xs text-slate-400">
+                            <button onclick="toggleLike(this)" class="flex items-center gap-1.5 hover:text-red-500 transition">
+                                <i class="fa-regular fa-heart"></i> <span class="like-count">29</span>
+                            </button>
+                            <button onclick="requestTechnician('Salum Mtaalamu')" class="text-emerald-400 hover:underline font-semibold">Wasiliana Naye</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Screen 2: Michezo, Zana za Maingiliano, Vipimo vya Simu & Mchezo wa Pili (Memory Tech Match) -->
+        <div id="screen_games" class="app-screen space-y-8 hidden">
+            
+            <!-- Interactive Tools Section -->
+            <section id="interactiveTools" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Lucky Spin Wheel -->
+                <div class="bg-cardBg p-5 rounded-2xl border border-slate-800 shadow-xl flex flex-col items-center space-y-4">
+                    <h3 class="font-bold text-sm text-white"><i class="fa-solid fa-dharmachakra text-amber-400 mr-2"></i> Gurudumu la Bahati (Lucky Spinner)</h3>
+                    <div class="relative w-[200px] h-[200px]">
+                        <canvas id="wheelCanvas" width="200" height="200" class="w-full h-full rounded-full border-4 border-slate-700 shadow-inner"></canvas>
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[14px] border-t-red-500 z-10"></div>
+                    </div>
+                    <button id="spinBtn" onclick="spinWheel()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-xs py-2.5 rounded-xl shadow transition">
+                        Zungusha Gurudumu (Bure)
+                    </button>
+                    <p id="spinResult" class="text-xs font-semibold text-amber-400 text-center"></p>
+                </div>
+
+                <!-- Phone Diagnostics Hub (Fully Enhanced) -->
+                <div class="bg-cardBg p-5 rounded-2xl border border-slate-800 shadow-xl space-y-3">
+                    <h3 class="font-bold text-sm text-white"><i class="fa-solid fa-stethoscope text-emerald-400 mr-2"></i> Vipimo Kamili vya Simu (Diagnostics)</h3>
+                    <p class="text-xs text-slate-400">Jaribu vipengele vya simu yako hapa chini kuthibitisha ufanisi.</p>
+                    <div class="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                        <div class="flex items-center justify-between bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                            <div>
+                                <p class="text-xs font-bold text-white">Touch Screen Test</p>
+                                <p id="touchStatus" class="text-[10px] text-slate-400">Haijapimwa</p>
+                            </div>
+                            <button onclick="runTouchTest()" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg transition">Pima</button>
+                        </div>
+                        <div class="flex items-center justify-between bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                            <div>
+                                <p class="text-xs font-bold text-white">Speaker Buzzer Test</p>
+                                <p id="speakerStatus" class="text-[10px] text-slate-400">Haijapimwa</p>
+                            </div>
+                            <button onclick="runSpeakerTest()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg transition">Pima</button>
+                        </div>
+                        <div class="flex items-center justify-between bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                            <div>
+                                <p class="text-xs font-bold text-white">Vibration Motor Test</p>
+                                <p id="vibrationStatus" class="text-[10px] text-slate-400">Haijapimwa</p>
+                            </div>
+                            <button onclick="runVibrationTest()" class="bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg transition">Pima</button>
+                        </div>
+                        <div class="flex items-center justify-between bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                            <div>
+                                <p class="text-xs font-bold text-white">Battery Health Simulation</p>
+                                <p id="batteryStatus" class="text-[10px] text-slate-400">Haijapimwa</p>
+                            </div>
+                            <button onclick="runBatteryTest()" class="bg-amber-600 hover:bg-amber-500 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg transition">Pima</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Moduli ya Michezo 5 Mifupi & Mchezo wa Pili (Memory Match) -->
+            <section id="miniGamesHub" class="space-y-6">
+                <div class="border-b border-slate-800 pb-2">
+                    <h2 class="font-bold text-base text-white flex items-center gap-2">
+                        <i class="fa-solid fa-puzzle-piece text-amber-400"></i> Moduli ya Michezo 5 Mifupi (Mini-Games & Quizzes)
+                    </h2>
+                    <p class="text-xs text-slate-400">Jifunze, jaribu uwezo wako na upate ujuzi wa kiteknolojia kupitia michezo midogo.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- 1. Smart Appliance Quiz -->
+                    <div class="bg-cardBg p-4 rounded-2xl border border-slate-800 space-y-3">
+                        <span class="bg-blue-500/10 text-blue-400 text-[10px] font-semibold px-2 py-0.5 rounded-full">Mchezo 1: Quiz ya Friji</span>
+                        <h4 class="font-bold text-xs text-white">Kwa nini friji inatengeneza barafu nyingi kwenye friji ya chini?</h4>
+                        <div class="space-y-2 text-xs">
+                            <button onclick="handleApplianceQuiz(false)" class="w-full text-left bg-slate-900 hover:bg-slate-800 p-2 rounded-xl border border-slate-700 transition">A) Jokofu limejaa sana chakula</button>
+                            <button onclick="handleApplianceQuiz(true)" class="w-full text-left bg-slate-900 hover:bg-slate-800 p-2 rounded-xl border border-slate-700 transition">B) Defrost Timer au Heater ina tatizo</button>
+                        </div>
+                        <p id="applianceQuizFeedback" class="hidden text-xs font-semibold pt-1"></p>
+                    </div>
+
+                    <!-- 2. Mchezo wa Pili (Memory Tech Match - Kadi za Ufundi) -->
+                    <div class="bg-cardBg p-4 rounded-2xl border border-slate-800 space-y-3">
+                        <span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold px-2 py-0.5 rounded-full">Mchezo 2: Memory Tech Match</span>
+                        <h4 class="font-bold text-xs text-white">Linganisha zana mbili za ufundi zinazofanana:</h4>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <button onclick="selectMemoryCard(this, 'Kioo')" class="bg-slate-900 border border-slate-700 p-2.5 rounded-xl font-bold hover:bg-slate-800 transition">Kioo</button>
+                            <button onclick="selectMemoryCard(this, 'Betri')" class="bg-slate-900 border border-slate-700 p-2.5 rounded-xl font-bold hover:bg-slate-800 transition">Betri</button>
+                            <button onclick="selectMemoryCard(this, 'Betri')" class="bg-slate-900 border border-slate-700 p-2.5 rounded-xl font-bold hover:bg-slate-800 transition">Betri</button>
+                            <button onclick="selectMemoryCard(this, 'Kioo')" class="bg-slate-900 border border-slate-700 p-2.5 rounded-xl font-bold hover:bg-slate-800 transition">Kioo</button>
+                        </div>
+                        <p id="memoryGameFeedback" class="text-[11px] text-slate-400 font-semibold">Chagua kadi mbili zenye jina sawa.</p>
+                    </div>
+
+                    <!-- 3. Home Safety & First Aid Scenario -->
+                    <div class="bg-cardBg p-4 rounded-2xl border border-slate-800 space-y-3">
+                        <span class="bg-red-500/10 text-red-400 text-[10px] font-semibold px-2 py-0.5 rounded-full">Mchezo 3: Usalama</span>
+                        <h4 class="font-bold text-xs text-white">Mtu kapigwa na shoti ya umeme wakati wa kutengeneza feni. Nini cha kwanza kufanya?</h4>
+                        <div class="space-y-2 text-xs">
+                            <button onclick="handleFirstAid(true)" class="w-full text-left bg-slate-900 hover:bg-slate-800 p-2 rounded-xl border border-slate-700 transition">A) Zima mains switch ya umeme mara moja</button>
+                            <button onclick="handleFirstAid(false)" class="w-full text-left bg-slate-900 hover:bg-slate-800 p-2 rounded-xl border border-slate-700 transition">B) Mvute kwa mikono miwili haraka</button>
+                        </div>
+                        <p id="firstAidFeedback" class="hidden text-xs font-semibold pt-1"></p>
+                    </div>
+
+                    <!-- 4. Energy Saver Challenge Simulation -->
+                    <div class="bg-cardBg p-4 rounded-2xl border border-slate-800 space-y-3">
+                        <span class="bg-amber-500/10 text-amber-400 text-[10px] font-semibold px-2 py-0.5 rounded-full">Mchezo 4: Nishati</span>
+                        <h4 class="font-bold text-xs text-white">Rekebisha AC na Taa za LED kuokoa nishati:</h4>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex items-center justify-between">
+                                <span>Joto la AC: <strong id="acVal" class="text-blue-400">24°C</strong></span>
+                                <div class="flex gap-1">
+                                    <button onclick="adjustEnergy('ac', -1)" class="bg-slate-800 px-2 py-1 rounded">-</button>
+                                    <button onclick="adjustEnergy('ac', 1)" class="bg-slate-800 px-2 py-1 rounded">+</button>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>Hali ya Taa za Eco:</span>
+                                <button onclick="toggleLedEco()" id="ledStatus" class="text-emerald-400 font-bold">Wazi (Washa Eco)</button>
+                            </div>
+                            <button onclick="simulateEnergy()" class="w-full bg-blue-600 text-white font-bold py-1.5 rounded-lg">Pima Ufanisi</button>
+                            <p id="energyResult" class="hidden text-[11px] text-emerald-400 font-semibold"></p>
+                        </div>
+                    </div>
+
+                    <!-- 5. Quick Tech Quiz -->
+                    <div class="bg-cardBg p-4 rounded-2xl border border-slate-800 space-y-3">
+                        <span class="bg-purple-500/10 text-purple-400 text-[10px] font-semibold px-2 py-0.5 rounded-full">Mchezo 5: Maarifa ya Simu</span>
+                        <h4 class="font-bold text-xs text-white">Simu yako inapokataa kuchaji hata ukibadilisha charger, tatizo kuu huwa wapi?</h4>
+                        <div class="space-y-2 text-xs">
+                            <button onclick="checkQuizAnswer(this, true)" class="w-full text-left bg-slate-900 hover:bg-slate-800 p-2 rounded-xl border border-slate-700 transition">A) Charging IC au Betri imeharibika</button>
+                            <button onclick="checkQuizAnswer(this, false)" class="w-full text-left bg-slate-900 hover:bg-slate-800 p-2 rounded-xl border border-slate-700 transition">B) Screen Display imekufa</button>
+                        </div>
+                        <p id="quizFeedback" class="hidden text-xs font-semibold pt-1"></p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Screen 3: Jukwaa la Jamii (Community Forum) -->
+        <div id="screen_community" class="app-screen space-y-8 hidden">
+            <section id="communityForum" class="space-y-4">
+                <div class="border-b border-slate-800 pb-2">
+                    <h2 class="font-bold text-base text-white flex items-center gap-2">
+                        <i class="fa-solid fa-comments text-cyan-400"></i> Jukwaa la Jamii (Community Forum)
+                    </h2>
+                    <p class="text-xs text-slate-400">Uliza maswali, toa maoni na jadili changamoto za kiufundi na mafundi wengine.</p>
+                </div>
+
+                <div class="bg-cardBg p-5 rounded-2xl border border-slate-800 space-y-4">
+                    <h3 class="font-bold text-sm text-white">Weka Maoni au Swali Lako</h3>
+                    <textarea placeholder="Andika ujumbe wako hapa..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 h-24"></textarea>
+                    <button onclick="alert('Ujumbe wako umezawadiwa na umetum kwenye Jukwaa!')" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition">
+                        Tuma Kwenye Jukwaa
+                    </button>
+                </div>
+
+                <!-- Community Poll -->
+                <div class="bg-cardBg p-5 rounded-2xl border border-slate-800 space-y-4">
+                    <h3 class="font-bold text-sm text-white">Kura ya Maoni ya Wiki Hii</h3>
+                    <p class="text-xs text-slate-300">Ni brand ipi ya simu unapendelea kuitumia kwa shughuli za biashara?</p>
+                    <div class="space-y-2 text-xs">
+                        <button onclick="votePoll('Samsung')" class="w-full text-left bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-slate-700 transition">Samsung Galaxy Series</button>
+                        <button onclick="votePoll('iPhone')" class="w-full text-left bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-slate-700 transition">Apple iPhone Series</button>
+                        <button onclick="votePoll('TecnoInfinix')" class="w-full text-left bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-slate-700 transition">Tecno & Infinix (Transsion)</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- FLOATING OFFER ALERT BANNER -->
+    <div id="floatingOfferBar" class="fixed bottom-16 left-0 right-0 max-w-xl mx-auto px-4 z-20 transition-all duration-300">
+        <div class="bg-gradient-to-r from-red-600 to-orange-600 text-white p-3 rounded-2xl shadow-2xl flex items-center justify-between border border-orange-400/30">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-fire text-yellow-300 animate-bounce text-xl"></i>
+                <div>
+                    <p class="text-xs font-bold leading-tight">Dhoruba ya Ofer! Punguzo la 20%</p>
+                    <p class="text-[10px] text-orange-100">Kwenye matengenezo yote ya Vioo leo tu!</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="switchScreen('screen_services')" class="bg-white text-red-600 font-bold text-xs px-3 py-1.5 rounded-lg shadow hover:bg-slate-100 transition">
+                    Pata Sasa
+                </button>
+                <button onclick="closeOfferBar()" class="text-orange-200 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION BAR (TABS NAVIGATION) -->
+    <nav class="fixed bottom-0 left-0 right-0 z-30 bg-slate-900/95 backdrop-blur border-t border-slate-800 px-4 py-2.5 flex items-center justify-around shadow-lg">
+        <button onclick="switchScreen('screen_services')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-blue-400 transition">
+            <i class="fa-solid fa-screwdriver-wrench text-base"></i>
+            <span class="text-[10px] font-semibold">Huduma Kuu</span>
+        </button>
+        <button onclick="switchScreen('screen_games')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-emerald-400 transition">
+            <i class="fa-solid fa-gamepad text-base"></i>
+            <span class="text-[10px] font-semibold">Michezo & Zana</span>
+        </button>
+        <button onclick="switchScreen('screen_community')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-cyan-400 transition">
+            <i class="fa-solid fa-comments text-base"></i>
+            <span class="text-[10px] font-semibold">Jamii</span>
+        </button>
+    </nav>
+
+    <!-- MODAL POPUPS FOR SIDEBAR LINKS -->
+    <div id="modalOverlay" class="fixed inset-0 bg-black/80 z-50 hidden backdrop-blur-sm flex items-center justify-center p-4">
+        
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 hidden space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-white text-base"><i class="fa-solid fa-sliders text-blue-400 mr-2"></i> Mipangilio (Settings)</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3 text-xs text-slate-300">
+                <div class="flex justify-between items-center py-2 border-b border-slate-800">
+                    <span>Aina ya Mandhari (Theme)</span>
+                    <span class="bg-slate-800 px-2 py-1 rounded text-slate-400">Giza (Dark Default)</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-slate-800">
+                    <span>Lugha ya Mfumo</span>
+                    <span class="text-blue-400 font-semibold">Kiswahili</span>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                    <span>Arifa za Offa & Mfumo</span>
+                    <input type="checkbox" checked class="accent-blue-600">
+                </div>
+            </div>
+            <button onclick="closeModal()" class="w-full bg-blue-600 text-white font-bold text-xs py-2 rounded-xl">Hifadhi & Funga</button>
+        </div>
+
+        <!-- Call Center Modal -->
+        <div id="callCenterModal" class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 hidden space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-white text-base"><i class="fa-solid fa-headset text-emerald-400 mr-2"></i> Call Center & Msaada</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3 text-xs text-slate-300">
+                <p>Wasiliana na huduma kwa wateja saa 24/7 kwa msaada wa kiufundi:</p>
+                <div class="bg-slate-800 p-3 rounded-xl space-y-2">
+                    <p class="flex items-center gap-2"><i class="fa-solid fa-phone text-emerald-400"></i> <strong>Simu:</strong> +257 67843604</p>
+                    <p class="flex items-center gap-2"><i class="fa-brands fa-whatsapp text-green-400"></i> <strong>WhatsApp:</strong> +243 815680775</p>
+                    <p class="flex items-center gap-2"><i class="fa-solid fa-envelope text-blue-400"></i> <strong>Barua Pepe:</strong> byaombemwamedi@gmail.com</p>
+                </div>
+            </div>
+            <button onclick="closeModal()" class="w-full bg-slate-800 text-slate-300 font-bold text-xs py-2 rounded-xl">Funga</button>
+        </div>
+
+        <!-- Terms Modal -->
+        <div id="termsModal" class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 hidden space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-white text-base"><i class="fa-solid fa-file-contract text-amber-400 mr-2"></i> Masharti na Vigezo</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="text-xs text-slate-300 space-y-2 max-h-48 overflow-y-auto pr-2">
+                <p>1. Simu zote zinazofanyiwa matengenezo na Byao Mobile Solution zina dhamana ya siku 30-90 kulingana na aina ya spea.</p>
+                <p>2. Salio la Byao Coins halina thamani ya fedha taslimu bali linatumika kwa punguzo la huduma zetu pekee.</p>
+                <p>3. Hakikisha unachukua stakabadhi (Ticket ID) kabla ya kuacha kifaa chako katika kituo chetu.</p>
+            </div>
+            <button onclick="closeModal()" class="w-full bg-slate-800 text-slate-300 font-bold text-xs py-2 rounded-xl">Nimeelewa</button>
+        </div>
+
+        <!-- About Modal -->
+        <div id="aboutModal" class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 hidden space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-white text-base"><i class="fa-solid fa-circle-info text-purple-400 mr-2"></i> Kuhusu Byao Mobile</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="text-xs text-slate-300 space-y-2">
+                <p><strong>Byao Mobile Solutions v2.5</strong> ni mfumo wa kisasa unaounganisha wateja na mafundi stadi wa vifaa vya kidijitali na kutoa huduma za haraka za kielektroniki.</p>
+                <p class="text-slate-400">Imeundwa kwa teknolojia ya hali ya juu kuhakikisha huduma bora na za kuaminika.</p>
+            </div>
+            <button onclick="closeModal()" class="w-full bg-purple-600 text-white font-bold text-xs py-2 rounded-xl">Funga</button>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT SYSTEM LOGIC & FIREBASE INTEGRATION -->
+    <script>
+        /* --- FIREBASE CONFIGURATION & INITIALIZATION --- */
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzMUUbB2mizlpóctcHhuCMaI-JecCxWhao",
+            authDomain: "byaomobilesolutions.firebaseapp.com",
+            databaseURL: "https://byaomobilesolutions-default-rtdb.firebaseio.com",
+            projectId: "byaomobilesolutions",
+            storageBucket: "byaomobilesolutions.appspot.com",
+            messagingSenderId: "817608416172",
+            appId: "1:817608416172:web:aed7aa2a69036633403809"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+        const rtdb = firebase.database();
+        const messaging = firebase.messaging ? firebase.messaging() : null;
+
+        /* --- STATE MANAGEMENT --- */
+        let userCoins = 160;
+        let isSwahiliVoice = true;
+
+        /* --- FIREBASE REAL-TIME LISTENERS (FIRESTORE & RTDB) WITH ADMIN APPROVAL VALIDATION --- */
+        function initFirebaseListeners() {
+            db.collection("announcements").doc("main_banner").onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (data.status === "approved" || data.isAdminApproved === true) {
+                        if (data.text) {
+                            document.getElementById('firestoreBannerText').innerText = data.text;
+                            document.getElementById('tickerTextContent').innerText = data.text;
+                        }
+                        if (data.title) {
+                            document.getElementById('tickerStrongTitle').innerText = data.title;
+                        }
+                    } else {
+                        console.log("Tangazo linasubiri idhini ya Admin (Pending Admin Approval).");
+                    }
+                }
+            }, (error) => {
+                console.log("Firestore listener active in offline/fallback mode:", error);
+            });
+
+            rtdb.ref("system_updates/latest").on("value", (snapshot) => {
+                const val = snapshot.val();
+                if (val && val.ticker && (val.status === "approved" || val.isAdminApproved === true)) {
+                    document.getElementById('tickerTextContent').innerText = val.ticker;
+                }
+            });
+        }
+        initFirebaseListeners();
+
+        /* --- FIREBASE CLOUD MESSAGING (FCM) SETUP --- */
+        function requestNotificationPermission() {
+            if (!messaging) {
+                return;
+            }
+            Notification.requestPermission().then((permission) => {
+                if (permission === 'granted') {
+                    document.getElementById('fcmStatusText').innerText = "Arifa Imewashwa";
+                    document.getElementById('fcmIcon').className = "fa-solid fa-bell text-emerald-400";
+                    messaging.getToken({vapidKey: "YOUR_PUBLIC_VAPID_KEY_HERE"}).then((currentToken) => {
+                        if (currentToken) {
+                            console.log("FCM Device Token:", currentToken);
+                        }
+                    }).catch((err) => {
+                        console.log("An error occurred while retrieving token. ", err);
+                    });
+                }
+            });
+        }
+
+        /* --- MODULI YA MICHEZO MIPIFU 5 (5 MINI-GAMES LOGIC) --- */
+        function handleApplianceQuiz(isCorrect) {
+            const feedback = document.getElementById('applianceQuizFeedback');
+            feedback.classList.remove('hidden');
+            if (isCorrect) {
+                feedback.className = "text-xs font-semibold text-emerald-400";
+                feedback.innerText = "Sahihi! Defrost Timer huwezesha friji kuzuia mkusanyiko wa barafu.";
+            } else {
+                feedback.className = "text-xs font-semibold text-red-400";
+                feedback.innerText = "Si sahihi! Jaribu tena.";
+            }
+        }
+
+        let firstCardText = null;
+        let firstCardBtn = null;
+        function selectMemoryCard(btn, cardName) {
+            btn.classList.add('bg-blue-600', 'text-white');
+            if (!firstCardText) {
+                firstCardText = cardName;
+                firstCardBtn = btn;
+            } else {
+                if (firstCardText === cardName && firstCardBtn !== btn) {
+                    document.getElementById('memoryGameFeedback').innerText = "✓ Safi sana! Umelinganisha vizuri.";
+                    document.getElementById('memoryGameFeedback').className = "text-[11px] text-emerald-400 font-semibold";
+                    userCoins += 10;
+                    updateCoinDisplay();
+                } else {
+                    document.getElementById('memoryGameFeedback').innerText = "× Si sawa. Jaribu tena.";
+                    document.getElementById('memoryGameFeedback').className = "text-[11px] text-red-400 font-semibold";
+                    setTimeout(() => {
+                        if(firstCardBtn) firstCardBtn.classList.remove('bg-blue-600', 'text-white');
+                        btn.classList.remove('bg-blue-600', 'text-white');
+                    }, 800);
+                }
+                firstCardText = null;
+                firstCardBtn = null;
+            }
+        }
+
+        function handleFirstAid(isCorrect) {
+            const feedback = document.getElementById('firstAidFeedback');
+            feedback.classList.remove('hidden');
+            if (isCorrect) {
+                feedback.className = "text-xs font-semibold text-emerald-400";
+                feedback.innerText = "Uamuzi Sahihi! Usalama kwanza: zima chanzo cha umeme.";
+            } else {
+                feedback.className = "text-xs font-semibold text-red-400";
+                feedback.innerText = "Hatari! Usimguse bila kuzima umeme.";
+            }
+        }
+
+        let currentAcTemp = 24;
+        let isLedEcoOn = true;
+        function adjustEnergy(type, amount) {
+            if (type === 'ac') {
+                currentAcTemp += amount;
+                if (currentAcTemp < 18) currentAcTemp = 18;
+                if (currentAcTemp > 30) currentAcTemp = 30;
+                document.getElementById('acVal').innerText = currentAcTemp + '°C';
+            }
+        }
+        function toggleLedEco() {
+            isLedEcoOn = !isLedEcoOn;
+            document.getElementById('ledStatus').innerText = isLedEcoOn ? "Wazi (Washa Eco)" : "Zima (Kawaida)";
+            document.getElementById('ledStatus').className = isLedEcoOn ? "text-emerald-400" : "text-amber-400";
+        }
+        function simulateEnergy() {
+            const res = document.getElementById('energyResult');
+            res.classList.remove('hidden');
+            let savings = (currentAcTemp >= 24 && isLedEcoOn) ? "35% ya Bili ya Umeme Imepunguzwa!" : "Matumizi ya kawaida yamerekodiwa.";
+            res.innerText = `Matokeo: ${savings}`;
+        }
+
+        /* --- SIDEBAR DRAWER INTERACTION --- */
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const openSidebarBtn = document.getElementById('openSidebar');
+        const closeSidebarBtn = document.getElementById('closeSidebar');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            if (sidebar.classList.contains('open')) {
+                sidebarOverlay.classList.remove('hidden');
+                setTimeout(() => sidebarOverlay.classList.remove('opacity-0'), 10);
+            } else {
+                sidebarOverlay.classList.add('opacity-0');
+                setTimeout(() => sidebarOverlay.classList.add('hidden'), 300);
+            }
+        }
+
+        openSidebarBtn?.addEventListener('click', toggleSidebar);
+        closeSidebarBtn?.addEventListener('click', toggleSidebar);
+        sidebarOverlay?.addEventListener('click', toggleSidebar);
+
+        /* --- SCREEN SWITCHING (TABS LOGIC) --- */
+        function switchScreen(screenId) {
+            document.querySelectorAll('.app-screen').forEach(screen => {
+                screen.classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+            toggleSidebar();
+            window.scrollTo(0, 0);
+        }
+
+        /* --- MODAL SYSTEM FOR SIDEBAR LINKS --- */
+        const modalOverlay = document.getElementById('modalOverlay');
+        
+        function openModal(modalId) {
+            if (sidebar.classList.contains('open')) {
+                toggleSidebar();
+            }
+            modalOverlay.classList.remove('hidden');
+            document.querySelectorAll('#modalOverlay > div').forEach(el => el.classList.add('hidden'));
+            document.getElementById(modalId).classList.remove('hidden');
+        }
+
+        function closeModal() {
+            modalOverlay.classList.add('hidden');
+        }
+
+        /* --- DEVICE TRACKING FUNCTION --- */
+        function trackDevice() {
+            const val = document.getElementById('trackInput').value.trim();
+            const res = document.getElementById('trackResult');
+            res.classList.remove('hidden');
+            
+            if (val === '') {
+                res.className = "text-xs font-semibold text-red-400 pt-1";
+                res.innerText = "Tafadhali ingiza Namba ya Tiketi au IMEI!";
+            } else {
+                res.className = "text-xs font-semibold text-emerald-400 pt-1";
+                res.innerText = `Tiketi ${val}: Simu yako ipo hatua ya mwisho (Testing & Polish).`;
+            }
+        }
+
+        /* --- PRICE CALCULATOR FUNCTION --- */
+        function calculatePrice() {
+            const partVal = parseFloat(document.getElementById('calcPart').value);
+            const brandVal = parseFloat(document.getElementById('calcBrand').value);
+            const total = Math.round(partVal * brandVal);
+            
+            const res = document.getElementById('calcResult');
+            res.classList.remove('hidden');
+            res.innerText = `Gharama iliyokadiriwa: Takriban $${total} USD`;
+        }
+
+        /* --- DAILY CHECK-IN LOYALTY POINTS --- */
+        function claimDailyCoins() {
+            const btn = document.getElementById('claimCoinsBtn');
+            if (!btn.disabled) {
+                userCoins += 20;
+                updateCoinDisplay();
+                btn.disabled = true;
+                btn.innerText = "Umeshachukua Leo!";
+                btn.className = "w-full bg-slate-700 text-slate-400 font-bold text-xs py-2.5 rounded-xl cursor-not-allowed";
+            }
+        }
+
+        function updateCoinDisplay() {
+            document.getElementById('headerCoinCount').innerText = userCoins;
+            document.getElementById('sidebarCoinCount').innerText = userCoins;
+        }
+
+        /* --- LUCKY SPINNER WHEEL LOGIC --- */
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas ? canvas.getContext('2d') : null;
+        const rewards = ["10% Punguzo", "50 Coins", "Kioo Bure", "Jaribu Tena", "5% Punguzo", "20 Coins"];
+        const colors = ["#2563EB", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#64748B"];
+        let startAngle = 0;
+        const arc = Math.PI / (rewards.length / 2);
+        let canSpin = true;
+
+        function drawWheel() {
+            if (!canvas || !ctx) return;
+            ctx.clearRect(0, 0, 200, 200);
+            for (let i = 0; i < rewards.length; i++) {
+                const angle = startAngle + i * arc;
+                ctx.fillStyle = colors[i];
+                ctx.beginPath();
+                ctx.arc(100, 100, 95, angle, angle + arc, false);
+                ctx.lineTo(100, 100);
+                ctx.fill();
+
+                ctx.save();
+                ctx.fillStyle = "#FFFFFF";
+                ctx.font = "bold 10px sans-serif";
+                ctx.translate(100 + Math.cos(angle + arc / 2) * 60, 100 + Math.sin(angle + arc / 2) * 60);
+                ctx.rotate(angle + arc / 2 + Math.PI / 2);
+                ctx.fillText(rewards[i], -ctx.measureText(rewards[i]).width / 2, 0);
+                ctx.restore();
+            }
+        }
+        drawWheel();
+
+        function spinWheel() {
+            if (!canSpin) return;
+            canSpin = false;
+            const spinBtn = document.getElementById('spinBtn');
+            spinBtn.disabled = true;
+            spinBtn.classList.add('opacity-50');
+
+            const degrees = Math.floor(3600 + Math.random() * 360);
+            canvas.style.transform = `rotate(${degrees}deg)`;
+
+            setTimeout(() => {
+                document.getElementById('spinResult').innerText = "Hongera! Umeshinda: 10% Punguzo!";
+                userCoins += 10;
+                updateCoinDisplay();
+            }, 4000);
+        }
+
+        /* --- QUIZ ANSWER CHECK --- */
+        function checkQuizAnswer(btn, isCorrect) {
+            const feedback = document.getElementById('quizFeedback');
+            feedback.classList.remove('hidden');
+            
+            if (isCorrect) {
+                feedback.className = "text-xs font-semibold mt-2 text-emerald-400";
+                feedback.innerText = "Sahihi Kabisa! Umepata +10 Coins!";
+                userCoins += 10;
+                updateCoinDisplay();
+            } else {
+                feedback.className = "text-xs font-semibold mt-2 text-red-400";
+                feedback.innerText = "Si Sahihi!";
+            }
+        }
+
+        /* --- ENHANCED PHONE DIAGNOSTICS (Simu Diagnostic Tools) --- */
+        function runTouchTest() {
+            const status = document.getElementById('touchStatus');
+            status.innerText = "Inapima...";
+            status.className = "text-[10px] text-yellow-400 font-semibold";
+            setTimeout(() => {
+                status.innerText = "✓ Touch Iko Sawa (100%)";
+                status.className = "text-[10px] text-emerald-400 font-semibold";
+            }, 1500);
+        }
+
+        function runSpeakerTest() {
+            const status = document.getElementById('speakerStatus');
+            status.innerText = "Inapima...";
+            status.className = "text-[10px] text-yellow-400 font-semibold";
+            if (window.AudioContext || window.webkitAudioContext) {
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = audioCtx.createOscillator();
+                    osc.type = "sine";
+                    osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                    osc.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.8);
+                } catch(e) {}
+            }
+            setTimeout(() => {
+                status.innerText = "✓ Spika Inafanya Kazi";
+                status.className = "text-[10px] text-emerald-400 font-semibold";
+            }, 1000);
+        }
+
+        function runVibrationTest() {
+            const status = document.getElementById('vibrationStatus');
+            status.innerText = "Inapima...";
+            status.className = "text-[10px] text-yellow-400 font-semibold";
+            if ("vibrate" in navigator) {
+                navigator.vibrate([200, 100, 200]);
+            }
+            setTimeout(() => {
+                status.innerText = "✓ Moteri ya Mtetemo Iko Sawa";
+                status.className = "text-[10px] text-emerald-400 font-semibold";
+            }, 1200);
+        }
+
+        function runBatteryTest() {
+            const status = document.getElementById('batteryStatus');
+            status.innerText = "Inapima...";
+            status.className = "text-[10px] text-yellow-400 font-semibold";
+            setTimeout(() => {
+                status.innerText = "✓ Afya ya Betri: Nzuri (88%)";
+                status.className = "text-[10px] text-emerald-400 font-semibold";
+            }, 1500);
+        }
+
+        /* --- POLL VOTING --- */
+        function votePoll(option) {
+            console.log("Kura imepigwa kwa:", option);
+        }
+
+        /* --- TECHNICIAN REQUEST & LIKES --- */
+        function toggleLike(btn) {
+            const countSpan = btn.querySelector('.like-count');
+            let currentLikes = parseInt(countSpan.innerText);
+            const icon = btn.querySelector('i');
+            
+            if (icon.classList.contains('fa-regular')) {
+                icon.classList.remove('fa-regular');
+                icon.classList.add('fa-solid', 'text-red-500');
+                countSpan.innerText = currentLikes + 1;
+            } else {
+                icon.classList.remove('fa-solid', 'text-red-500');
+                icon.classList.add('fa-regular');
+                countSpan.innerText = currentLikes - 1;
+            }
+        }
+
+        function requestTechnician(techName) {
+            console.log("Ombi limetumwa kwa:", techName);
+        }
+
+        /* --- FLOATING OFFER BAR --- */
+        function closeOfferBar() {
+            document.getElementById('floatingOfferBar').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
+

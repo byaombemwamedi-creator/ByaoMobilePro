@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Dashboard - Byao Mobile Solutions</title>
+    <style>
+        :root {
+            --bg-color: #0d0d0d;
+            --card-bg: #161618;
+            --border-color: #2a2a2e;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a5;
+            --accent-blue: #00d4ff;
+            --accent-yellow: #ffbb00;
+            --btn-blue-bg: #0099cc;
+            --btn-blue-hover: #00bfff;
+            --btn-yellow-bg: #cca300;
+            --btn-yellow-hover: #ffbb00;
+            --btn-danger: #ff4d4d;
+            --btn-danger-hover: #ff6666;
+            --success-color: #00e676;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            color: var(--accent-blue);
+            border: 1px solid var(--accent-blue);
+            padding: 8px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--accent-blue);
+            color: var(--bg-color);
+        }
+
+        h1 {
+            color: var(--accent-yellow);
+            font-size: 22px;
+            margin: 0;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            border-color: #3a3a40;
+        }
+
+        h2 {
+            color: var(--accent-blue);
+            margin-top: 0;
+            font-size: 16px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-approve {
+            background: var(--btn-yellow-bg);
+            color: #000;
+        }
+        .btn-approve:hover {
+            background: var(--btn-yellow-hover);
+        }
+
+        .btn-delete {
+            background: var(--btn-danger);
+            color: white;
+        }
+        .btn-delete:hover {
+            background: var(--btn-danger-hover);
+        }
+
+        .btn-primary {
+            background: var(--btn-blue-bg);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--btn-blue-hover);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        th, td {
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px;
+            text-align: left;
+        }
+
+        textarea {
+            width: 100%;
+            background: #111;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            box-sizing: border-box;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        select {
+            background: #111;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            border-radius: 6px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        ul {
+            padding-left: 20px;
+            margin: 10px 0;
+            color: var(--text-muted);
+        }
+
+        li {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        li span {
+            color: var(--text-main);
+            font-weight: bold;
+        }
+
+        .status-msg {
+            font-size: 12px;
+            margin-top: 6px;
+            font-weight: bold;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <a href="admin.html" class="back-btn">&#8592; Rudi Admin</a>
+        <h1>Byao Mobile Solutions - Super Admin</h1>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- 1. Feed Moderation -->
+        <div class="card">
+            <h2>Usimamizi wa Maudhui (Feed)</h2>
+            <table id="feedTable">
+                <tr>
+                    <td>Video ya Fundi Juma</td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-approve" onclick="handleAction(this, 'approved')">Idhinisha</button> 
+                        <button class="btn btn-delete" onclick="handleAction(this, 'deleted')">Futa</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Karatasi ya Huawei Y9</td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-approve" onclick="handleAction(this, 'approved')">Idhinisha</button> 
+                        <button class="btn btn-delete" onclick="handleAction(this, 'deleted')">Futa</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- 2. Announcement & Ads -->
+        <div class="card">
+            <h2>Matangazo ya Papo Hapo</h2>
+            <textarea id="adText" rows="3" placeholder="Andika tangazo hapa..."></textarea>
+            <button class="btn btn-primary" style="margin-top: 10px; width: 100%;" onclick="broadcastAd(this)">Rusha Tangazo</button>
+            <div id="adStatus" class="status-msg" style="color: var(--success-color);"></div>
+        </div>
+
+        <!-- 3. Chat/Call Report -->
+        <div class="card">
+            <h2>Ripoti za Nidhamu (Chat/Call)</h2>
+            <div id="reportItem">
+                <p style="color: var(--text-muted); font-size: 13px; margin: 0 0 10px 0;">Mteja <strong>0712345678</strong> karipotiwa kwa lugha chafu.</p>
+                <button class="btn btn-delete" onclick="closeAccount(this)">Funga Akaunti</button>
+            </div>
+        </div>
+
+        <!-- 4. Analytics -->
+        <div class="card">
+            <h2>Takwimu za Michezo & App</h2>
+            <ul>
+                <li>Michezo iliyochezwa leo: <span id="gamesCount">1,240</span></li>
+                <li>Mafundi wanaotumia App: <span id="techPercent">85%</span></li>
+                <li>Hali ya Mfumo: <span style="color: var(--success-color);">Salama (Online)</span></li>
+            </ul>
+        </div>
+
+        <!-- 5. Badge Management -->
+        <div class="card">
+            <h2>Usimamizi wa Beji za Mafundi</h2>
+            <select id="badgeSelect">
+                <option value="Fundi Mtaalam">Fundi Mtaalam</option>
+                <option value="Fundi Intermediate">Fundi Intermediate</option>
+                <option value="Fundi Anayeanza">Fundi Anayeanza</option>
+            </select>
+            <button class="btn btn-approve" style="width: 100%;" onclick="updateBadge(this)">Sasisha Beji</button>
+            <div id="badgeStatus" class="status-msg" style="color: var(--success-color);"></div>
+        </div>
+    </div>
+
+    <script>
+        function handleAction(button, actionType) {
+            const row = button.closest('tr');
+            const actionCell = row.querySelector('td:last-child');
+            if (actionType === 'approved') {
+                actionCell.innerHTML = '<span style="color: var(--success-color); font-weight: bold;">Imeidhinishwa</span>';
+            } else {
+                row.style.opacity = '0.3';
+                setTimeout(() => row.remove(), 400);
+            }
+        }
+
+        function broadcastAd(button) {
+            const textarea = document.getElementById('adText');
+            const status = document.getElementById('adStatus');
+            if (textarea.value.trim() === "") {
+                status.style.color = var(--btn-danger);
+                status.textContent = "Tafadhali andika ujumbe kwanza.";
+                return;
+            }
+            button.textContent = "Inarusha...";
+            button.disabled = true;
+            setTimeout(() => {
+                textarea.value = "";
+                button.textContent = "Rusha Tangazo";
+                button.disabled = false;
+                status.style.color = "var(--success-color)";
+                status.textContent = "Tangazo limerushwa kikamilifu!";
+                setTimeout(() => status.textContent = "", 3000);
+            }, 600);
+        }
+
+        function closeAccount(button) {
+            const container = button.closest('div');
+            button.style.background = '#444';
+            button.style.color = '#888';
+            button.disabled = true;
+            button.textContent = "Akaunti Imefungwa";
+            const note = container.querySelector('p');
+            note.style.textDecoration = 'line-through';
+            note.style.opacity = '0.5';
+        }
+
+        function updateBadge(button) {
+            const select = document.getElementById('badgeSelect');
+            const status = document.getElementById('badgeStatus');
+            const selectedValue = select.value;
+            button.textContent = "Inasasisha...";
+            button.disabled = true;
+            setTimeout(() => {
+                button.textContent = "Sasisha Beji";
+                button.disabled = false;
+                status.textContent = `Beji imebadilishwa kuwa: ${selectedValue}`;
+                setTimeout(() => status.textContent = "", 3000);
+            }, 500);
+        }
+    </script>
+</body>
+</html>
+
