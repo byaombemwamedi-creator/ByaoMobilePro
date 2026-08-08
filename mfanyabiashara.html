@@ -229,7 +229,7 @@
                 <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
                     <i data-lucide="megaphone" class="w-4 h-4"></i> Kituo cha Matangazo (Create & Renew Ads)
                 </h2>
-                <p class="text-slate-400 text-[11px]">Rusha matangazo kwa wateja na mafundi. Matangazo huisha kiotomatiki baada ya muda uliowekwa.</p>
+                <p class="text-slate-400 text-[11px]">Rusha matangazo kwa wateja na mafundi. Matangazo yote yatapitiwa na Admin Mkuu kabla ya kuruka.</p>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <input type="text" id="adTitle" class="w-full bg-[#050b18] border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]" placeholder="Kichwa cha Tangazo (Mf. Punguzo la Lcd Displays Tecno)">
@@ -251,14 +251,14 @@
                 </div>
 
                 <button id="btnRushaTangazo" onclick="rushaTangazoHewani()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:opacity-90 text-white font-extrabold py-3.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
-                    <i data-lucide="radio" class="w-4 h-4"></i> Rusha Tangazo Hewani Sasa
+                    <i data-lucide="radio" class="w-4 h-4"></i> Tuma Tangazo kwa Admin
                 </button>
             </section>
 
             <!-- ORODHA YA MATANGAZO YALIYORUSHWA -->
             <section class="glass-card p-5 rounded-2xl space-y-3 text-xs">
                 <h3 class="text-xs font-bold text-white flex items-center gap-2">
-                    <i data-lucide="clock" class="w-4 h-4 text-cyan-400"></i> Matangazo Yako Yanayorushwa na Muda Wao
+                    <i data-lucide="clock" class="w-4 h-4 text-cyan-400"></i> Matangazo Yako Yanayorushwa na Hali Yake
                 </h3>
                 <div id="activeAdsContainer" class="space-y-2">
                     <!-- Matangazo yataingia hapa -->
@@ -392,7 +392,6 @@
                 const data = snapshot.val();
                 if (data) {
                     const allAds = Array.isArray(data) ? data : Object.values(data);
-                    // Onyesha matangazo yote au ya kwake pekee pale inapohitajika
                     adsList = allAds.filter(ad => ad.merchantId === merchantData.id || ad.owner === merchantData.name);
                     localStorage.setItem('byao_global_ads', JSON.stringify(adsList));
                     pakarishaMatangazo();
@@ -504,7 +503,6 @@
                 showToast("🔑 PIN Mpya imebadilishwa kikamilifu!");
             }
 
-            // Hifadhi au chukua ID iliyopo badala ya kutengeneza mpya kila mara
             let mId = merchantData ? merchantData.id : ("MRC-" + Math.floor(1000 + Math.random() * 9000));
             merchantData = {
                 name: jinaDuka || "Byao Electronics Store",
@@ -568,7 +566,6 @@
 
             bidhaaList.unshift(newProd);
             
-            // Hifadhi kwenye LocalStorage na Firebase Cloud chini ya Merchant ID ya Pekee
             localStorage.setItem('byao_merchant_products', JSON.stringify(bidhaaList));
             db.ref('merchants/' + merchantData.id + '/products').set(bidhaaList);
 
@@ -613,99 +610,167 @@
             showToast("🗑️ Bidhaa imefutwa!");
         }
 
+        // --- SEHEMU ILIYOREKEBISHWA YA MATANGAZO NA UPAKIAJI WA MEDIA ---
+
         function previewAdMedia(event) {
             const file = event.target.files[0];
             if (file) {
                 selectedAdFile = file;
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const previewBox = document.getElementById('mediaContainerPreview');
-                    previewBox.innerHTML = '';
-                    if (file.type.startsWith('image/')) {
-                        previewBox.innerHTML = `<img src="${e.target.result}" class="w-full h-24 object-cover rounded-xl border border-slate-800">`;
-                    } else if (file.type.startsWith('video/')) {
-                        previewBox.innerHTML = `<video src="${e.target.result}" controls class="w-full h-24 object-cover rounded-xl border border-slate-800"></video>`;
-                    }
-                    document.getElementById('mediaPreviewBox').classList.remove('hidden');
+                const previewBox = document.getElementById('mediaContainerPreview');
+                const previewContainer = document.getElementById('mediaPreviewBox');
+                if (!previewBox) return;
+                
+                // Tumia Blob URL kwa ufunguzi na uonyeshaji wa haraka wa video na picha
+                const objectUrl = URL.createObjectURL(file);
+                
+                previewBox.innerHTML = '';
+                if (file.type.startsWith('image/')) {
+                    previewBox.innerHTML = `<img src="${objectUrl}" class="w-full h-32 object-cover rounded-xl border border-slate-800">`;
+                } else if (file.type.startsWith('video/')) {
+                    previewBox.innerHTML = `<video src="${objectUrl}" controls class="w-full h-32 object-cover rounded-xl border border-slate-800 bg-black"></video>`;
                 }
-                reader.readAsDataURL(file);
+                
+                if (previewContainer) previewContainer.classList.remove('hidden');
             }
         }
 
         async function rushaTangazoHewani() {
-            if (!merchantData || !merchantData.id) return;
-            const title = document.getElementById('adTitle').value.trim();
-            const desc = document.getElementById('adDescription').value.trim();
-            const durationHours = parseInt(document.getElementById('adDuration').value);
-            const btn = document.getElementById('btnRushaTangazo');
+    if (!merchantData || !merchantData.id) {
+        showToast("⚠️ Hafahamiki! Ingia tena kama Mfanyabiashara.");
+        return;
+    }
+    
+    const title = document.getElementById('adTitle').value.trim();
+    const desc = document.getElementById('adDescription').value.trim();
+    const durationHours = parseInt(document.getElementById('adDuration').value) || 24;
+    const btn = document.getElementById('btnRushaTangazo');
 
-            if (!title) {
-                showToast("⚠️ Ingiza kichwa cha tangazo!");
-                return;
-            }
+    if (!title) {
+        showToast("⚠️ Ingiza kichwa cha tangazo!");
+        return;
+    }
 
-            let mediaUrl = "";
-            if (selectedAdFile) {
-                btn.innerText = "⏳ Inapakia Picha/Video kwenye Cloud...";
-                btn.disabled = true;
-                try {
-                    const fileRef = storage.ref(`ads_media/${Date.now()}_${selectedAdFile.name}`);
-                    await fileRef.put(selectedAdFile);
-                    mediaUrl = await fileRef.getDownloadURL();
-                } catch (error) {
-                    console.error("Storage Error:", error);
-                    showToast("⚠️ Imefeli kupakia media, tangazo litaenda bila media.");
-                }
-                btn.innerText = "🚀 Rusha Tangazo Hewani Sasa";
-                btn.disabled = false;
-            }
+    let mediaUrl = "";
+    let mediaType = "";
 
-            const newAd = {
-                id: "AD-" + Date.now(),
-                merchantId: merchantData.id,
-                owner: merchantData.name,
-                title: title,
-                desc: desc,
-                mediaUrl: mediaUrl,
-                expiresAt: Date.now() + (durationHours * 3600 * 1000),
-                date: new Date().toLocaleDateString()
-            };
+    if (selectedAdFile) {
+        const originalBtnText = btn.innerHTML;
+        btn.innerText = "⏳ Inapakia Picha/Video kwenye Cloud...";
+        btn.disabled = true;
 
-            // Ongeza tangazo jipya kwenye Firebase Global Ads
-            db.ref('global_ads').push(newAd);
+        try {
+            const cleanName = selectedAdFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+            const fileRef = storage.ref(`ads_media/${Date.now()}_${cleanName}`);
+            
+            const uploadTask = fileRef.put(selectedAdFile);
+            await new Promise((resolve, reject) => {
+                uploadTask.on('state_changed', 
+                    (snapshot) => {
+                        const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+                        btn.innerText = `⏳ Inapakia Media... ${progress}%`;
+                    }, 
+                    (error) => reject(error), 
+                    () => resolve()
+                );
+            });
 
-            selectedAdFile = null;
-            document.getElementById('mediaPreviewBox').classList.add('hidden');
-            document.getElementById('adMediaInput').value = '';
+            mediaUrl = await fileRef.getDownloadURL();
+            mediaType = selectedAdFile.type.startsWith('video/') ? 'video' : 'image';
+        } catch (error) {
+            console.error("Storage Upload Error:", error);
+            showToast("⚠️ Imefeli kupakia media, tangazo litaenda bila media.");
+        }
+        
+        btn.innerHTML = originalBtnText;
+        btn.disabled = false;
+    }
 
-            showToast("🚀 Tangazo limerushwa kwa Wateja na Mafundi wote!");
-            document.getElementById('adTitle').value = '';
-            document.getElementById('adDescription').value = '';
+    const adId = "AD-" + Date.now();
+    const newAd = {
+        id: adId,
+        merchantId: merchantData.id,
+        owner: merchantData.name || "Mfanyabiashara",
+        title: title,
+        desc: desc,
+        mediaUrl: mediaUrl,
+        mediaType: mediaType,
+        durationHours: durationHours,
+        status: 'pending',
+        isApproved: false,
+        createdAt: Date.now(),
+        expiresAt: 0,
+        date: new Date().toLocaleDateString()
+    };
+
+    try {
+        // Tumia set() yenye adId ili matangazo yote yaingie Node moja kuu ya `global_ads`
+        await db.ref('global_ads/' + adId).set(newAd);
+        showToast("🕒 Tangazo limetumwa kwa Admin Mkuu!");
+    } catch (err) {
+        console.error(err);
+        showToast("❌ Tatizo la mtandao, jaribu tena.");
+        return;
+    }
+
+    selectedAdFile = null;
+    document.getElementById('adTitle').value = '';
+    document.getElementById('adDescription').value = '';
+}
+
         }
 
         function pakarishaMatangazo() {
             const container = document.getElementById('activeAdsContainer');
+            if (!container) return;
+            
             let html = "";
 
-            adsList.forEach((ad, index) => {
-                const timeLeft = ad.expiresAt - Date.now();
-                const isExpired = timeLeft <= 0;
-                const hoursLeft = Math.max(0, Math.floor(timeLeft / (1000 * 3600)));
+            adsList.forEach((ad) => {
+                let statusBadge = "";
+                let timeBadge = "";
+
+                if (ad.status === 'pending' || !ad.isApproved) {
+                    statusBadge = `<span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded text-[9px] font-bold">🟡 Inasubiri Idhini ya Admin</span>`;
+                    timeBadge = `<span class="text-[9px] text-slate-400">⏱️ Muda utaanza baada ya Idhini</span>`;
+                } else if (ad.status === 'rejected') {
+                    statusBadge = `<span class="bg-rose-500/20 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded text-[9px] font-bold">🔴 LIMEKATALIWA</span>`;
+                    timeBadge = `<span class="text-[9px] text-rose-400 font-bold">Halijaruhusiwa kuruka</span>`;
+                } else {
+                    const timeLeft = ad.expiresAt - Date.now();
+                    const isExpired = timeLeft <= 0;
+                    const hoursLeft = Math.max(0, Math.floor(timeLeft / (1000 * 3600)));
+
+                    statusBadge = `<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded text-[9px] font-bold">🟢 Lipo Hewani</span>`;
+                    timeBadge = `
+                        <span class="text-[9px] ${isExpired ? 'text-rose-400' : 'text-cyan-300'} font-bold">
+                            ${isExpired ? '❌ Tangazo Limeisha Muda' : `⏱️ Salio la Muda: Masaa ${hoursLeft}`}
+                        </span>`;
+                }
+
+                let mediaPreviewHtml = '';
+                if (ad.mediaUrl) {
+                    if (ad.mediaType === 'video' || ad.mediaUrl.includes('.mp4') || ad.mediaUrl.includes('.webm')) {
+                        mediaPreviewHtml = `<video src="${ad.mediaUrl}" class="w-12 h-12 rounded-lg object-cover border border-slate-800 bg-black"></video>`;
+                    } else {
+                        mediaPreviewHtml = `<img src="${ad.mediaUrl}" class="w-12 h-12 rounded-lg object-cover border border-slate-800">`;
+                    }
+                }
 
                 html += `
-                    <div class="bg-slate-950 p-3 rounded-xl border ${isExpired ? 'border-rose-500/40' : 'border-cyan-500/30'} flex justify-between items-center">
-                        <div class="flex items-center gap-3">
-                            ${ad.mediaUrl ? `<img src="${ad.mediaUrl}" class="w-12 h-12 rounded-lg object-cover border border-slate-800">` : ''}
-                            <div>
-                                <span class="font-bold text-white">${ad.title}</span>
-                                <p class="text-[10px] text-slate-400">${ad.desc}</p>
-                                <span class="text-[9px] ${isExpired ? 'text-rose-400' : 'text-cyan-300'} font-bold">
-                                    ${isExpired ? '❌ Tangazo Limeisha Muda' : `⏱️ Salio la Muda: Masaa ${hoursLeft}`}
-                                </span>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center gap-2">
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            ${mediaPreviewHtml}
+                            <div class="truncate">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-white text-xs truncate">${ad.title}</span>
+                                    ${statusBadge}
+                                </div>
+                                <p class="text-[10px] text-slate-400 truncate">${ad.desc}</p>
+                                <div class="mt-0.5">${timeBadge}</div>
                             </div>
                         </div>
-                        <div>
-                            <button onclick="renewAd('${ad.id}')" class="bg-blue-600/30 hover:bg-blue-600 border border-blue-500/40 text-blue-300 hover:text-white px-2.5 py-1 rounded-lg text-[10px] font-bold">
+                        <div class="flex-shrink-0">
+                            <button onclick="renewAd('${ad.id}')" class="bg-blue-600/30 hover:bg-blue-600 border border-blue-500/40 text-blue-300 hover:text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition">
                                 🔄 Ongeza Muda
                             </button>
                         </div>
@@ -713,8 +778,10 @@
                 `;
             });
 
-            container.innerHTML = html || `<div class="text-slate-500 text-center py-2">Hakuna matangazo yaliyopo hewani.</div>`;
+            container.innerHTML = html || `<div class="text-slate-500 text-center py-2 text-xs">Hakuna matangazo uliyotuma.</div>`;
         }
+
+        // --- MWISHO WA SEHEMU ILIYOREKEBISHWA ---
 
         function renewAd(adId) {
             db.ref('global_ads').once('value', (snapshot) => {
@@ -802,5 +869,3 @@
     </script>
 </body>
 </html>
-
-
