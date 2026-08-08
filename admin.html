@@ -65,7 +65,7 @@
                 <h2 class="text-xl font-black text-white tracking-tight mt-1">BYAO ADMIN CONTROL HUB</h2>
                 <p class="text-slate-400 text-xs">Weka PIN rasmi ya Master Admin ili kuingia</p>
 
-                <!-- FIELD YA PIN (Maxlength Imeondolewa) -->
+                <!-- FIELD YA PIN -->
                 <div id="adminPinBox" class="pt-2">
                     <input type="password" id="adminPinInput" placeholder="Ingiza PIN ya Admin" class="w-full bg-slate-900 border border-cyan-500/50 rounded-xl px-3 py-3 text-center text-cyan-300 font-bold focus:outline-none focus:border-cyan-400 tracking-widest text-base">
                 </div>
@@ -266,6 +266,15 @@
                         <i data-lucide="sliders" class="w-4 h-4"></i> Udhibiti wa Jumla wa Mfumo (Master Control)
                     </h3>
                     <div class="space-y-2.5">
+                        <!-- KADI MPYA / KITUFE CHA KUPELEKA KWENYE ADMIN 2 -->
+                        <a href="admin2.html" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-black py-3 px-4 rounded-xl text-xs transition shadow-lg shadow-blue-500/20 flex items-center justify-between group">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="external-link" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+                                <span>Fungua Faili la Pili (Admin 2 Hub)</span>
+                            </div>
+                            <span class="bg-black/30 px-2 py-0.5 rounded text-[10px] text-cyan-200">admin2.html</span>
+                        </a>
+
                         <button onclick="badilishaAdminPin()" class="w-full bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
                             <i data-lucide="lock" class="w-3.5 h-3.5"></i> Badilisha PIN ya Master Admin
                         </button>
@@ -448,7 +457,7 @@
 
         function renderAdsApprovalList() {
             const container = document.getElementById('adsApprovalContainer');
-            if(!container) return;
+            if (!container) return;
             container.innerHTML = '';
 
             const keys = Object.keys(merchantAds);
@@ -466,21 +475,40 @@
 
             keys.forEach((key) => {
                 const ad = merchantAds[key];
-                const isApproved = ad.status === 'Approved';
+                const isPending = !ad.isApproved || ad.status === 'pending' || ad.status === 'Pending';
+                
+                let mediaDisplay = '';
+                if (ad.mediaUrl) {
+                    if (ad.mediaType === 'video' || ad.mediaUrl.includes('.mp4') || ad.mediaUrl.includes('.webm')) {
+                        mediaDisplay = `<video src="${ad.mediaUrl}" controls class="w-full h-40 object-cover rounded-xl mt-2 bg-black"></video>`;
+                    } else {
+                        mediaDisplay = `<img src="${ad.mediaUrl}" class="w-full h-40 object-cover rounded-xl mt-2 border border-slate-800">`;
+                    }
+                }
+
                 const card = document.createElement('div');
-                card.className = "bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-2 text-xs text-white";
+                card.className = `bg-slate-900 p-4 rounded-2xl border ${isPending ? 'border-amber-500/50' : 'border-slate-800'} space-y-2 mb-3`;
                 card.innerHTML = `
                     <div class="flex justify-between items-center">
-                        <b class="text-[#00e5ff] text-sm">${ad.title || 'Tangazo'}</b>
-                        <span class="${isApproved ? 'text-emerald-400' : 'text-amber-400'} font-bold text-[10px] px-2 py-0.5 rounded bg-slate-800">
-                            ${isApproved ? 'LIVE' : 'PENDING'}
+                        <h4 class="font-bold text-white text-sm">${ad.title || 'Tangazo'}</h4>
+                        <span class="text-[10px] px-2 py-0.5 rounded font-bold ${isPending ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'}">
+                            ${isPending ? 'PENDING' : 'LIVE'}
                         </span>
                     </div>
-                    <p class="text-slate-300 text-[11px]">${ad.desc || ad.description || ''}</p>
-                    <div class="text-[10px] text-slate-400">Mmiliki: <span class="text-cyan-300">${ad.owner || ad.merchant || 'Mfanyabiashara'}</span></div>
-                    <div class="flex gap-2 pt-2">
-                        ${!isApproved ? `<button onclick="idhinishaTangazo('${key}')" class="w-full bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg font-bold text-white">Idhinisha Hewani</button>` : ''}
-                        <button onclick="futaTangazo('${key}')" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 py-2 rounded-lg font-bold text-slate-300">Futa</button>
+                    <p class="text-xs text-slate-300">${ad.desc || ad.description || ''}</p>
+                    <div class="text-[10px] text-slate-400">Mmiliki: <strong>${ad.owner || ad.merchantId || ad.merchant || 'Mfanyabiashara'}</strong></div>
+                    
+                    ${mediaDisplay}
+
+                    <div class="flex gap-2 pt-2 border-t border-slate-800/80">
+                        ${isPending ? `
+                            <button onclick="approveAdByAdmin('${key}', ${ad.durationHours || 24})" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs transition">
+                                ✅ Idhinisha (Approve)
+                            </button>
+                        ` : ''}
+                        <button onclick="deleteAdByAdmin('${key}')" class="flex-1 bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white font-bold py-2 rounded-xl text-xs transition">
+                            🗑️ Futa Tangazo
+                        </button>
                     </div>
                 `;
                 container.appendChild(card);
@@ -494,7 +522,9 @@
                 title: "Onyesho la Skrini ya OLED - Samsung A12",
                 desc: "Vipuri vya asili (Original Display) vinapatikana kwa bei ya jumla na rejareja.",
                 owner: "Mfanyabiashara Baraka",
-                status: "Pending",
+                status: "pending",
+                isApproved: false,
+                durationHours: 24,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             };
 
@@ -507,22 +537,27 @@
             });
         }
 
-        function idhinishaTangazo(key) {
-            db.ref(`global_ads/${key}`).update({
-                status: 'Approved'
-            }, (error) => {
-                if (!error) {
-                    showToast("🚀 Tangazo limerushwa HEWANI rasmi kwa watumiaji wote!");
-                } else {
-                    showToast("❌ Kosa wakati wa kuidhinisha: " + error.message);
-                }
+        function approveAdByAdmin(adKey, durationHours) {
+            const expireTime = Date.now() + (durationHours * 3600 * 1000);
+            
+            db.ref(`global_ads/${adKey}`).update({
+                isApproved: true,
+                status: 'approved',
+                expiresAt: expireTime,
+                approvedAt: Date.now()
+            }).then(() => {
+                showToast("✅ Tangazo limeidhinishwa na lipo hewani!");
+            }).catch((err) => {
+                showToast("❌ Kosa wakati wa kuidhinisha: " + err.message);
             });
         }
 
-        function futaTangazo(key) {
-            db.ref(`global_ads/${key}`).remove((error) => {
-                if(!error) showToast("🗑️ Tangazo limefutwa.");
-            });
+        function deleteAdByAdmin(adKey) {
+            if (confirm("Je, una uhakika wa kufuta tangazo hili?")) {
+                db.ref(`global_ads/${adKey}`).remove().then(() => {
+                    showToast("🗑️ Tangazo limefutwa kikamilifu.");
+                });
+            }
         }
 
         function renderChatData() {
@@ -666,5 +701,4 @@
     </script>
 </body>
 </html>
-
 
