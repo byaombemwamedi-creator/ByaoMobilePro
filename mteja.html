@@ -49,11 +49,12 @@
             border-color: rgba(0, 229, 255, 0.4);
             box-shadow: 0 0 25px rgba(0, 229, 255, 0.15);
         }
-        .chat-box { height: 360px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem; }
+        /* Chat height imepanuliwa kidogo */
+        .chat-box { height: 460px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem; }
         .msg { max-width: 85%; padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.85rem; word-break: break-word; }
         .msg.incoming { background: #1e293b; align-self: flex-start; border: 1px solid #334155; color: #f8fafc; }
         .msg.outgoing { background: #0066ff; color: white; align-self: flex-end; }
-        .preview-container { display: none; background: #0f172a; border: 1px solid #334155; padding: 10px; border-radius: 8px; margin-top: 8px; align-items: center; justify-between: flex; }
+        .preview-container { display: none; background: #0f172a; border: 1px solid #334155; padding: 10px; border-radius: 8px; margin-top: 8px; align-items: center; justify-content: space-between; }
         .preview-container.active { display: flex; }
         .scam-warning { background: rgba(245, 158, 11, 0.12); border: 1px solid #f59e0b; color: #f59e0b; padding: 0.85rem; border-radius: 12px; font-size: 0.82rem; margin-bottom: 1rem; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -73,7 +74,7 @@
 
         /* ANIMATION YA KUTIKISIKA KWA SEKUNDE 5 */
         .shake-live-5s {
-            animation: liveShake 0.5s ease-in-out 10; /* Math: 0.5s x 10 repeats = Sekunde 5 */
+            animation: liveShake 0.5s ease-in-out 10;
         }
         @keyframes liveShake {
             0%, 100% { transform: translateX(0); }
@@ -81,6 +82,36 @@
             40% { transform: translateX(4px) rotate(1deg); }
             60% { transform: translateX(-3px); }
             80% { transform: translateX(3px); }
+        }
+
+        /* PROFESSIONAL GLOW & PULSE ANIMATION KWA MTEJA NAMBA 2 CARD */
+        .portal-v2-card {
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.2) 0%, rgba(0, 229, 255, 0.1) 100%);
+            border: 2px solid rgba(0, 229, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        .portal-v2-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 229, 255, 0.15) 0%, transparent 60%);
+            animation: rotateGlow 6s linear infinite;
+        }
+        @keyframes rotateGlow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .btn-v2-pulse {
+            animation: btnPulse 2s infinite;
+        }
+        @keyframes btnPulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(0, 229, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0); }
         }
     </style>
 </head>
@@ -119,7 +150,7 @@
     </div>
 
     <!-- HEADER KUU YA MTEJA -->
-    <header class="w-full max-w-5xl mx-auto flex justify-between items-center bg-[#081026] p-4 rounded-2xl border border-slate-800 mb-5 shadow-xl glass-card">
+    <header class="w-full max-w-7xl mx-auto flex justify-between items-center bg-[#081026] p-4 rounded-2xl border border-slate-800 mb-5 shadow-xl glass-card">
         <div>
             <div class="flex items-center space-x-2">
                 <span class="bg-[#0066ff] text-white text-[10px] font-black px-2 py-0.5 rounded uppercase">GLOBAL PORTAL</span>
@@ -136,257 +167,308 @@
         </div>
     </header>
 
-    <!-- SEHEMU KUU ZA MAUDHUI YA MTEJA -->
-    <main class="w-full max-w-5xl mx-auto space-y-6 flex-1">
-
-        <!-- MATANGAZO YANAYOTOKA FIREBASE -->
-        <section class="glass-card p-5 sm:p-6 rounded-2xl shadow-xl space-y-3 border border-amber-500/30">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h2 class="text-sm font-extrabold text-amber-400 flex items-center gap-2">
-                    <i data-lucide="megaphone" class="w-4 h-4"></i> 📢 Matangazo na Taarifa Maalum (Global Ads)
-                </h2>
-                <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded font-bold">Live kutoka Firebase</span>
-            </div>
-            <div id="globalAdsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div class="text-xs text-slate-400 italic">Inapakia matangazo...</div>
-            </div>
-        </section>
-
-        <!-- GLOBAL TECHNICIAN FINDER -->
-        <section class="glass-card p-5 sm:p-6 rounded-2xl shadow-xl space-y-4 border border-[#00e5ff]/30">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
-                    <i data-lucide="map-pin" class="w-4 h-4"></i> 🌍 Tafuta Fundi Aliye Karibu Nawe (Global Location Finder)
-                </h2>
-                <span class="text-[10px] bg-blue-500/20 text-blue-300 px-2.5 py-0.5 rounded font-bold">International Coverage</span>
-            </div>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div>
-                    <label class="block font-bold text-slate-300 mb-1">Nchi (Country):</label>
-                    <select id="techSearchCountry" class="w-full bg-[#050b18] border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]" onchange="filterTechniciansByLocation()">
-                        <option value="ALL">Nchi Zote (All Countries)</option>
-                        <option value="Tanzania">Tanzania 🇹🇿</option>
-                        <option value="Kenya">Kenya 🇰🇪</option>
-                        <option value="DRC">DR Congo 🇨🇩</option>
-                        <option value="Rwanda">Rwanda 🇷🇼</option>
-                        <option value="Burundi">Burundi 🇧🇮</option>
-                        <option value="Uganda">Uganda 🇺🇬</option>
-                    </select>
+    <!-- KADI YENYE ANIMATION PROFESSIONAL YA KUMVUTA MTEJA AFUNGUE MTEJA NAMBA 2 -->
+    <section class="w-full max-w-7xl mx-auto mb-6">
+        <div class="portal-v2-card p-5 sm:p-6 rounded-2xl shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 z-10">
+            <div class="space-y-2 text-center md:text-left z-10">
+                <div class="flex items-center justify-center md:justify-start gap-2">
+                    <span class="bg-gradient-to-r from-cyan-400 to-blue-600 text-slate-950 font-black text-[10px] px-3 py-1 rounded-full uppercase tracking-wider animate-pulse">NEW GENERATION</span>
+                    <span class="text-xs text-cyan-300 font-extrabold flex items-center gap-1"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-cyan-400"></i> Portal Version 2.0 VIP</span>
                 </div>
-                <div>
-                    <label class="block font-bold text-slate-300 mb-1">Mji / Wilaya / Eneo:</label>
-                    <input type="text" id="techSearchCity" placeholder="Mf. Kariakoo, Nairobi, Goma, Bujumbura..." class="w-full bg-[#050b18] border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]" onkeyup="filterTechniciansByLocation()">
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-300 mb-1">Aina ya Matengenezo:</label>
-                    <select id="techSpecialty" class="w-full bg-[#050b18] border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]" onchange="filterTechniciansByLocation()">
-                        <option value="ALL">Utaalamu Wote</option>
-                        <option value="Hardware">Hardware & Vioo (Screens)</option>
-                        <option value="Software">Software, Unlocking & Flashing</option>
-                        <option value="Motherboard">Motherboard & Chip Repair</option>
-                    </select>
-                </div>
+                <h2 class="text-lg sm:text-xl font-black text-white tracking-wide">Fungua Portal ya Mteja Namba 2 (Ultra VIP Experience)</h2>
+                <p class="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                    Pata huduma za haraka zaidi, ufuatiliaji wa satelaiti wa simu yako, mazungumzo ya moja kwa moja ya sauti na video na mafundi bingwa, pamoja na punguzo la kipekee la vipuri!
+                </p>
             </div>
-
-            <div id="techniciansListResult" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2"></div>
-        </section>
-
-        <!-- 1. DEVICE TRACKING -->
-        <section class="glass-card p-5 sm:p-6 rounded-2xl shadow-xl space-y-3">
-            <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
-                <i data-lucide="search" class="w-4 h-4"></i> 1. Angalia Hali ya Simu Yako (Device Tracking)
-            </h2>
-            <p class="text-xs text-slate-400">Weka namba ya risiti au namba yako ya simu kuona hatua iliyofikia simu yako iliyopo kwa fundi.</p>
-            <div class="flex gap-2">
-                <input type="text" id="clientTrackInput" placeholder="Weka namba ya risiti (Mf. BYAO-1001)..." class="w-full bg-[#050b18] border border-slate-800 p-3 rounded-xl text-xs text-white focus:outline-none focus:border-[#00e5ff]">
-                <button class="bg-[#0066ff] hover:bg-blue-600 text-white font-bold px-5 py-3 rounded-xl text-xs transition shadow-lg flex items-center gap-1.5" onclick="trackClientDevice()">
-                    <i data-lucide="search" class="w-3.5 h-3.5"></i> Tafuta
-                </button>
+            <div class="z-10 flex-shrink-0 w-full md:w-auto">
+                <a href="mteja2.html" target="_blank" onclick="funguaMtejaNamba2(event)" class="btn-v2-pulse w-full md:w-auto bg-gradient-to-r from-[#00e5ff] to-[#0066ff] hover:from-cyan-400 hover:to-blue-600 text-slate-950 font-black px-6 py-3.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer">
+                    <i data-lucide="external-link" class="w-4 h-4 text-slate-950"></i>
+                    <span>FUNGUA MTEJA NAMBA 2 SASA</span>
+                </a>
             </div>
-            <div id="clientTrackResult" class="hidden mt-3 p-3.5 bg-[#050b18] border border-slate-800 rounded-xl text-xs space-y-1"></div>
-        </section>
+        </div>
+    </section>
 
-        <!-- 2. MULTIMEDIA LIVE CHAT ENGINE -->
-        <section class="glass-card border border-[#00e5ff]/40 p-5 sm:p-6 rounded-2xl shadow-2xl space-y-4">
-            <div class="scam-warning flex items-center gap-2">
-                <i data-lucide="shield-alert" class="w-5 h-5 flex-shrink-0"></i>
-                <span><b>Onyo la Usalama (Anti-Scam Protection):</b> Usitume malipo ya fedha nje ya mfumo au kabla ya kuhakiki huduma ya fundi au mfanyabiashara wako.</span>
-            </div>
-            
-            <!-- ENEO LA MAZUNGUMZO NA PREVIEW YA MEDIA (CHAT SECTION ONLY) -->
-            <div class="flex flex-col space-y-3">
-                <!-- Sanduku la Ujumbe (Chat Box Display) -->
-                <div class="chat-box bg-darkBg border border-borderCol p-3.5 rounded-xl" id="chat-messages">
-                    <div class="msg incoming">Habari! Karibu kwenye chumba cha mawasiliano cha Byao. Tuma ujumbe, picha, video, au sauti hapa chini.</div>
+    <!-- SEHEMU KUU ZA MAUDHUI YA MTEJA (GRID YA SEHEMU KUU NA SIDEBAR) -->
+    <main class="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
+
+        <!-- UPANDE WA KUSHOTO: CHAT ENGINE & HUDUMA KUU (COL-SPAN-2) -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- MATANGAZO YANAYOTOKA FIREBASE -->
+            <section class="glass-card p-5 sm:p-6 rounded-2xl shadow-xl space-y-3 border border-amber-500/30">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h2 class="text-sm font-extrabold text-amber-400 flex items-center gap-2">
+                        <i data-lucide="megaphone" class="w-4 h-4"></i> 📢 Matangazo na Taarifa Maalum (Global Ads)
+                    </h2>
+                    <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded font-bold">Live kutoka Firebase</span>
                 </div>
+                <div id="globalAdsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="text-xs text-slate-400 italic">Inapakia matangazo...</div>
+                </div>
+            </section>
 
-                <!-- Eneo la Preview kabla ya kutuma (Text, Audio, Video, PDF Preview Container) -->
-                <div id="chat-preview-box" class="preview-container">
-                    <div class="flex flex-col w-full gap-2 overflow-hidden">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[10px] font-bold text-accent uppercase tracking-wider">Preview ya Vyombo vya Habari / Ujumbe:</span>
-                            <button type="button" class="bg-red-600 text-white px-2.5 py-1 rounded text-[10px] font-bold hover:bg-red-700 transition" onclick="cancelMediaPreview()">Futa</button>
-                        </div>
-                        
-                        <div class="flex items-center gap-2.5 bg-slate-950 p-2.5 rounded-xl border border-borderCol">
-                            <div id="preview-thumb-container" class="flex-shrink-0"></div>
-                            <div class="flex flex-col overflow-hidden w-full">
-                                <div id="preview-file-name" class="text-xs text-white truncate font-medium">Faili au Ujumbe Teule</div>
-                                <div id="preview-media-player" class="mt-1 w-full"></div>
-                            </div>
-                        </div>
+            <!-- GLOBAL TECHNICIAN FINDER -->
+            <section class="glass-card p-5 sm:p-6 rounded-2xl shadow-xl space-y-4 border border-[#00e5ff]/30">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
+                        <i data-lucide="map-pin" class="w-4 h-4"></i> 🌍 Tafuta Fundi Aliye Karibu Nawe (Global Location Finder)
+                    </h2>
+                    <span class="text-[10px] bg-blue-500/20 text-blue-300 px-2.5 py-0.5 rounded font-bold">International Coverage</span>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Nchi (Country):</label>
+                        <select id="techSearchCountry" class="w-full bg-[#050b18] border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]" onchange="filterTechniciansByLocation()">
+                            <option value="ALL">Nchi Zote (All Countries)</option>
+                            <option value="Tanzania">Tanzania 🇹🇿</option>
+                            <option value="Kenya">Kenya 🇰🇪</option>
+                            <option value="DRC">DR Congo 🇨🇩</option>
+                            <option value="Rwanda">Rwanda 🇷🇼</option>
+                            <option value="Burundi">Burundi 🇧🇮</option>
+                            <option value="Uganda">Uganda 🇺🇬</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Mji / Wilaya / Eneo:</label>
+                        <input type="text" id="techSearchCity" placeholder="Mf. Kariakoo, Nairobi, Goma, Bujumbura..." class="w-full bg-[#050b18] border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]" onkeyup="filterTechniciansByLocation()">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Aina ya Matengenezo:</label>
+                        <select id="techSpecialty" class="w-full bg-[#050b18] border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]" onchange="filterTechniciansByLocation()">
+                            <option value="ALL">Utaalamu Wote</option>
+                            <option value="Hardware">Hardware & Vioo (Screens)</option>
+                            <option value="Software">Software, Unlocking & Flashing</option>
+                            <option value="Motherboard">Motherboard & Chip Repair</option>
+                        </select>
                     </div>
                 </div>
 
-                <!-- Sehemu ya Pembejeo na Vifungo vya Kutuma (Inputs & Send Button Area) -->
-                <div class="flex gap-2 items-center">
-                    <!-- Kitufe cha Kuambatisha Faili (Image, Video, Audio, PDF) -->
-                    <button type="button" class="bg-darkBg border border-borderCol p-2.5 rounded-xl text-accent hover:bg-slate-800 transition flex items-center justify-center" title="Ambatisha Picha, Video, Audio au PDF" onclick="document.getElementById('chat-file-input').click()">📎</button>
-                    <input type="file" id="chat-file-input" class="hidden" accept="image/*,video/*,audio/*,.pdf" onchange="handleFileSelected(event)">
-                    
-                    <!-- Kitufe cha Kurekodi Sauti (Voice Note Record) -->
-                    <button type="button" id="voiceRecordBtn" onclick="toggleVoiceRecording()" class="bg-darkBg border border-borderCol p-2.5 rounded-xl text-accent hover:bg-slate-800 transition flex items-center justify-center" title="Rekodi Sauti (Voice Note)">🎤</button>
-                    
-                    <!-- Sehemu ya Kuandikia Ujumbe wa Maandishi (Text Message Input) -->
-                    <input type="text" class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-xs text-white focus:outline-none focus:border-accent" id="chat-input" placeholder="Andika ujumbe wako..." oninput="updateMessagePreview()">
-                    
-                    <!-- Kitufe Rasmi cha Tuma (Send Button) -->
-                    <button type="button" class="bg-accent hover:bg-emerald-600 text-white font-bold px-5 py-3 rounded-xl text-xs transition flex items-center justify-center shadow-lg shadow-emerald-900/30" onclick="sendMessage()">Tuma 🚀</button>
-                </div>
-            </div>
-        </section>
+                <div id="techniciansListResult" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2"></div>
+            </section>
 
-        <!-- 3. PRICE CALCULATOR -->
-        <section class="glass-card p-5 sm:p-6 rounded-2xl shadow-xl space-y-4">
-            <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
-                <i data-lucide="calculator" class="w-4 h-4"></i> 3. Kikokotoo cha Makisio ya Bei ya Matengenezo (Price Calculator)
-            </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div>
-                    <label class="block font-bold text-slate-400 mb-1">Sarafu (Currency)</label>
-                    <select class="w-full bg-[#050b18] border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]" id="est-currency" onchange="calculatePrice()">
-                        <option value="TZS" data-rate="1" data-symbol="TZS">TZS (Tsh)</option>
-                        <option value="USD" data-rate="0.00038" data-symbol="$">USD ($)</option>
-                        <option value="KES" data-rate="0.050" data-symbol="KES">KES (Ksh)</option>
-                        <option value="CDF" data-rate="1.05" data-symbol="CDF">CDF (Fc)</option>
-                        <option value="RWF" data-rate="0.52" data-symbol="RWF">RWF (FRw)</option>
-                        <option value="BIF" data-rate="1.10" data-symbol="BIF">BIF (FBu)</option>
-                    </select>
+            <!-- 1. DEVICE TRACKING -->
+            <section class="glass-card p-5 sm:p-6 rounded-2xl shadow-xl space-y-3">
+                <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
+                    <i data-lucide="search" class="w-4 h-4"></i> 1. Angalia Hali ya Simu Yako (Device Tracking)
+                </h2>
+                <p class="text-xs text-slate-400">Weka namba ya risiti au namba yako ya simu kuona hatua iliyofikia simu yako iliyopo kwa fundi.</p>
+                <div class="flex gap-2">
+                    <input type="text" id="clientTrackInput" placeholder="Weka namba ya risiti (Mf. BYAO-1001)..." class="w-full bg-[#050b18] border border-slate-800 p-3 rounded-xl text-xs text-white focus:outline-none focus:border-[#00e5ff]">
+                    <button class="bg-[#0066ff] hover:bg-blue-600 text-white font-bold px-5 py-3 rounded-xl text-xs transition shadow-lg flex items-center gap-1.5" onclick="trackClientDevice()">
+                        <i data-lucide="search" class="w-3.5 h-3.5"></i> Tafuta
+                    </button>
                 </div>
-                <div>
-                    <label class="block font-bold text-slate-400 mb-1">Aina ya Simu</label>
-                    <select class="w-full bg-[#050b18] border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]" id="est-phone" onchange="calculatePrice()">
-                        <option value="15000">Tecno / Infinix / Itel</option>
-                        <option value="30000">Samsung Galaxy Series</option>
-                        <option value="50000">Apple iPhone Series</option>
-                        <option value="25000">Xiaomi / Oppo / Vivo</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-400 mb-1">Tatizo Linalotakiwa Kutengenezwa</label>
-                    <select class="w-full bg-[#050b18] border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]" id="est-problem" onchange="calculatePrice()">
-                        <option value="25000">Kubadilisha Kioo (Screen Replacement)</option>
-                        <option value="15000">Kubadilisha Betri (Battery)</option>
-                        <option value="10000">Bandari ya Kuchaji (Charging Port)</option>
-                        <option value="35000">Software / Network Unlock</option>
-                    </select>
-                </div>
-            </div>
-            <div id="est-result" class="mt-4 p-3.5 bg-[#050b18] border border-slate-800 rounded-xl text-center font-black text-[#00e5ff] text-sm shadow-inner">
-                Makisio ya Bei: TZS 40,000
-            </div>
-        </section>
+                <div id="clientTrackResult" class="hidden mt-3 p-3.5 bg-[#050b18] border border-slate-800 rounded-xl text-xs space-y-1"></div>
+            </section>
 
-        <!-- 4. SPARES CATALOGUE -->
-        <section class="glass-card p-5 sm:p-6 rounded-2xl shadow-xl space-y-4">
-            <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
-                <i data-lucide="shopping-bag" class="w-4 h-4"></i> 4. Orodha ya Vipuri & Vifaa Kutoka kwa Mfanyabiashara (Spares Catalogue)
-            </h2>
-            <p class="text-xs text-slate-400">Angalia vipuri halisi vinavyouzwa na maduka ya Mfanyabiashara kwenye mfumo kabla ya kuagiza.</p>
-            <div id="spareCatalogueContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
-        </section>
-
-        <!-- 5. MY RECEIPTS -->
-        <section class="glass-card p-5 sm:p-6 rounded-2xl shadow-xl space-y-3">
-            <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
-                <i data-lucide="receipt" class="w-4 h-4"></i> 5. 🧾 Risiti Zangu za Dijiti (Digital Receipts History)
-            </h2>
-            <p class="text-xs text-slate-400">Hapa unaona kumbukumbu za malipo na risiti za vifaa vyako vyote vilivyowahi kutengenezwa.</p>
-            <div id="myReceiptsContainer" class="space-y-2"></div>
-        </section>
-
-        <!-- 6. FEEDBACK -->
-        <section class="glass-card p-5 sm:p-6 rounded-2xl shadow-xl space-y-3">
-            <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
-                <i data-lucide="star" class="w-4 h-4"></i> 6. ⭐ Toa Maoni au Tathmini ya Huduma (Service Feedback)
-            </h2>
-            <p class="text-xs text-slate-400">Je, ulipenda huduma ya fundi au duka? Toa nyota na maoni ili kuboresha huduma.</p>
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="block font-bold text-slate-300 mb-1">Chagua Nyota:</label>
-                    <select id="clientRatingStars" class="w-full bg-[#050b18] border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]">
-                        <option value="5">★★★★★ - Vizuri Sana (Excellent)</option>
-                        <option value="4">★★★★☆ - Vizuri (Good)</option>
-                        <option value="3">★★★☆☆ - Wastani (Average)</option>
-                        <option value="2">★★☆☆☆ - Mbaya (Poor)</option>
-                        <option value="1">★☆☆☆☆ - Mbaya Sana (Very Bad)</option>
-                    </select>
+            <!-- 2. MULTIMEDIA LIVE CHAT ENGINE (KIPENGELE KILICHO-EXPANDED NA KUWA NA MUONEKANO MPYA) -->
+            <section class="glass-card border border-[#00e5ff]/40 p-5 sm:p-6 rounded-2xl shadow-2xl space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
+                        <i data-lucide="message-square" class="w-4 h-4"></i> 2. Chumba cha Mfumo wa Mawasiliano (Live Chat Engine)
+                    </h2>
+                    <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Live & Encrypted
+                    </span>
                 </div>
-                <div>
-                    <label class="block font-bold text-slate-300 mb-1">Maoni Yako:</label>
-                    <textarea id="clientFeedbackComment" placeholder="Andika maoni yako hapa..." class="w-full bg-[#050b18] border border-slate-800 p-3 rounded-xl text-white h-20 focus:outline-none focus:border-[#00e5ff]"></textarea>
-                </div>
-                <button onclick="submitClientFeedback()" class="w-full bg-[#0066ff] hover:bg-blue-600 text-white font-bold py-3 rounded-xl transition">Wasilisha Maoni Yako</button>
-            </div>
-        </section>
 
-        <!-- 7. WARRANTY TRACKER -->
-        <section class="glass-card p-5 sm:p-6 rounded-2xl shadow-xl space-y-3">
-            <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
-                <i data-lucide="shield-check" class="w-4 h-4"></i> 7. 🛡️ Ufuatiliaji wa Udhamana (Warranty Status)
-            </h2>
-            <p class="text-xs text-slate-400">Angalia muda uliobaki wa udhamana (warranty) wa kioo au betri uliyowandikishia.</p>
-            <div id="warrantyContainer" class="bg-[#050b18] p-4 rounded-xl border border-slate-800 text-xs space-y-2">
-                <div class="flex justify-between"><span>Kifaa:</span> <b class="text-white">Tecno Spark 10</b></div>
-                <div class="flex justify-between"><span>Siku za Udhamana Zilizobaki:</span> <b class="text-emerald-400">Siku 28 (Zimebakia)</b></div>
-                <div class="flex justify-between"><span>Hali ya Udhamana:</span> <b class="text-[#00e5ff]">Inafanya Kazi Rasmi</b></div>
-            </div>
-        </section>
-
-        <!-- 8. TECH TIPS -->
-        <section class="glass-card p-5 sm:p-6 rounded-2xl shadow-xl space-y-3">
-            <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
-                <i data-lucide="lightbulb" class="w-4 h-4"></i> 8. 💡 Ushauri na Miongozo ya Utunzaji wa Simu (Tech Tips)
-            </h2>
-            <div class="space-y-2 text-xs text-slate-300">
-                <div class="bg-[#050b18] p-3 rounded-xl border border-slate-800">
-                    <b>• Utunzaji wa Betri:</b> Epuka kutumia simu yako ikiwa kwenye chaji ili kuzuia joto kali na kuharibu uwezo wa betri.
+                <div class="scam-warning flex items-center gap-2">
+                    <i data-lucide="shield-alert" class="w-5 h-5 flex-shrink-0"></i>
+                    <span><b>Onyo la Usalama (Anti-Scam Protection):</b> Usitume malipo ya fedha nje ya mfumo au kabla ya kuhakiki huduma ya fundi au mfanyabiashara wako.</span>
                 </div>
-                <div class="bg-[#050b18] p-3 rounded-xl border border-slate-800">
-                    <b>• Usalama wa Kioo:</b> Tumia kifuniko cha kioo (Tempered Glass) chenye ubora wa juu kuzuia kupasuka wakati wa kuanguka.
-                </div>
-            </div>
-        </section>
+                
+                <!-- ENEO LA MAZUNGUMZO NA PREVIEW YA MEDIA (CHAT SECTION ONLY) -->
+                <div class="flex flex-col space-y-3">
+                    <!-- Sanduku la Ujumbe (Chat Box Display) - Expanded Height -->
+                    <div class="chat-box bg-darkBg border border-borderCol p-4 rounded-xl" id="chat-messages">
+                        <div class="msg incoming">Habari! Karibu kwenye chumba cha mawasiliano cha Byao. Tuma ujumbe, picha, video, au sauti hapa chini.</div>
+                    </div>
 
-        <!-- 9. PICKUP REQUEST -->
-        <section class="glass-card p-5 sm:p-6 rounded-2xl shadow-xl space-y-3">
-            <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
-                <i data-lucide="truck" class="w-4 h-4"></i> 9. 🚀 Omba Huduma ya Kuchukuliwa au Kuletewa Kifaa (Pickup Request)
-            </h2>
-            <p class="text-xs text-slate-400">Je, uko busy? Omba fundi afike ulipo au achukue simu yako kwa ajili ya matengenezo.</p>
-            <div class="space-y-3 text-xs">
-                <input type="text" id="pickupLocation" placeholder="Weka eneo lako kamili (Mf. Nchi, Mtaa, Nyumba namba)..." class="w-full bg-[#050b18] border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]">
-                <button onclick="requestPickupService()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold py-3 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
-                    <i data-lucide="send" class="w-4 h-4"></i>
-                    <span>Omba Huduma ya Usafiri wa Kifaa</span>
-                </button>
-            </div>
-        </section>
+                    <!-- Eneo la Preview kabla ya kutuma (Text, Audio, Video, PDF Preview Container) -->
+                    <div id="chat-preview-box" class="preview-container">
+                        <div class="flex flex-col w-full gap-2 overflow-hidden">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-bold text-accent uppercase tracking-wider">Preview ya Vyombo vya Habari / Ujumbe:</span>
+                                <button type="button" class="bg-red-600 text-white px-2.5 py-1 rounded text-[10px] font-bold hover:bg-red-700 transition" onclick="cancelMediaPreview()">Futa</button>
+                            </div>
+                            
+                            <div class="flex items-center gap-2.5 bg-slate-950 p-2.5 rounded-xl border border-borderCol">
+                                <div id="preview-thumb-container" class="flex-shrink-0"></div>
+                                <div class="flex flex-col overflow-hidden w-full">
+                                    <div id="preview-file-name" class="text-xs text-white truncate font-medium">Faili au Ujumbe Teule</div>
+                                    <div id="preview-media-player" class="mt-1 w-full"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sehemu ya Pembejeo na Vifungo vya Kutuma (Inputs & Send Button Area) -->
+                    <div class="flex gap-2 items-center">
+                        <!-- Kitufe cha Kuambatisha Faili (Image, Video, Audio, PDF) -->
+                        <button type="button" class="bg-darkBg border border-borderCol p-3 rounded-xl text-accent hover:bg-slate-800 transition flex items-center justify-center" title="Ambatisha Picha, Video, Audio au PDF" onclick="document.getElementById('chat-file-input').click()">📎</button>
+                        <input type="file" id="chat-file-input" class="hidden" accept="image/*,video/*,audio/*,.pdf" onchange="handleFileSelected(event)">
+                        
+                        <!-- Kitufe cha Kurekodi Sauti (Voice Note Record) -->
+                        <button type="button" id="voiceRecordBtn" onclick="toggleVoiceRecording()" class="bg-darkBg border border-borderCol p-3 rounded-xl text-accent hover:bg-slate-800 transition flex items-center justify-center" title="Rekodi Sauti (Voice Note)">🎤</button>
+                        
+                        <!-- Sehemu ya Kuandikia Ujumbe wa Maandishi (Text Message Input) -->
+                        <input type="text" class="w-full bg-darkBg border border-borderCol p-3 rounded-xl text-xs text-white focus:outline-none focus:border-accent" id="chat-input" placeholder="Andika ujumbe wako..." oninput="updateMessagePreview()">
+                        
+                        <!-- Kitufe Rasmi cha Tuma (Send Button) -->
+                        <button type="button" class="bg-accent hover:bg-emerald-600 text-white font-bold px-5 py-3 rounded-xl text-xs transition flex items-center justify-center shadow-lg shadow-emerald-900/30" onclick="sendMessage()">Tuma 🚀</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KADI NYINGINE YA TANGAZO TOKA FIREBASE CHINI YA CHAT -->
+            <section class="glass-card p-5 sm:p-6 rounded-2xl shadow-xl space-y-3 border border-cyan-500/30">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
+                        <i data-lucide="tag" class="w-4 h-4"></i> 💥 Ofa & Matangazo ya Fundi/Duka (Firebase Direct Feed)
+                    </h2>
+                    <span class="text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded font-bold">Sponsored</span>
+                </div>
+                <div id="firebaseAdsContainerChatBottom" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="text-xs text-slate-400 italic">Inapakia matangazo ya ziada...</div>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- UPANDE WA KULIA: SIDEBAR (KIANZIA KIKOKOTOO CHA MAKISIO KWENDA CHINI) -->
+        <aside class="space-y-6">
+
+            <!-- 3. PRICE CALCULATOR (KIKOKOTOO CHA MAKISIO - SIDEBAR TOP) -->
+            <section class="glass-card p-5 rounded-2xl shadow-xl space-y-4 border border-[#00e5ff]/30">
+                <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
+                    <i data-lucide="calculator" class="w-4 h-4"></i> 3. Kikokotoo cha Makisio (Price Calculator)
+                </h2>
+                <div class="space-y-3 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-400 mb-1">Sarafu (Currency)</label>
+                        <select class="w-full bg-[#050b18] border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]" id="est-currency" onchange="calculatePrice()">
+                            <option value="TZS" data-rate="1" data-symbol="TZS">TZS (Tsh)</option>
+                            <option value="USD" data-rate="0.00038" data-symbol="$">USD ($)</option>
+                            <option value="KES" data-rate="0.050" data-symbol="KES">KES (Ksh)</option>
+                            <option value="CDF" data-rate="1.05" data-symbol="CDF">CDF (Fc)</option>
+                            <option value="RWF" data-rate="0.52" data-symbol="RWF">RWF (FRw)</option>
+                            <option value="BIF" data-rate="1.10" data-symbol="BIF">BIF (FBu)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-400 mb-1">Aina ya Simu</label>
+                        <select class="w-full bg-[#050b18] border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]" id="est-phone" onchange="calculatePrice()">
+                            <option value="15000">Tecno / Infinix / Itel</option>
+                            <option value="30000">Samsung Galaxy Series</option>
+                            <option value="50000">Apple iPhone Series</option>
+                            <option value="25000">Xiaomi / Oppo / Vivo</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-400 mb-1">Tatizo la Simu</label>
+                        <select class="w-full bg-[#050b18] border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]" id="est-problem" onchange="calculatePrice()">
+                            <option value="25000">Kubadilisha Kioo (Screen)</option>
+                            <option value="15000">Kubadilisha Betri (Battery)</option>
+                            <option value="10000">Bandari ya Kuchaji (Charging)</option>
+                            <option value="35000">Software / Network Unlock</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="est-result" class="p-3 bg-[#050b18] border border-slate-800 rounded-xl text-center font-black text-[#00e5ff] text-xs shadow-inner">
+                    Makisio ya Bei: TZS 40,000
+                </div>
+            </section>
+
+            <!-- 4. SPARES CATALOGUE -->
+            <section class="glass-card p-5 rounded-2xl shadow-xl space-y-3">
+                <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
+                    <i data-lucide="shopping-bag" class="w-4 h-4"></i> 4. Vipuri & Vifaa (Spares)
+                </h2>
+                <p class="text-[11px] text-slate-400">Orodha ya vipuri kutoka maduka ya Mfanyabiashara.</p>
+                <div id="spareCatalogueContainer" class="space-y-2.5 max-h-80 overflow-y-auto pr-1"></div>
+            </section>
+
+            <!-- 5. MY RECEIPTS -->
+            <section class="glass-card p-5 rounded-2xl shadow-xl space-y-3">
+                <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
+                    <i data-lucide="receipt" class="w-4 h-4"></i> 5. 🧾 Risiti Zangu (Receipts)
+                </h2>
+                <p class="text-[11px] text-slate-400">Kumbukumbu za malipo ya vifaa vyako.</p>
+                <div id="myReceiptsContainer" class="space-y-2"></div>
+            </section>
+
+            <!-- 6. FEEDBACK -->
+            <section class="glass-card p-5 rounded-2xl shadow-xl space-y-3">
+                <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
+                    <i data-lucide="star" class="w-4 h-4"></i> 6. ⭐ Maoni (Service Feedback)
+                </h2>
+                <div class="space-y-3 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Chagua Nyota:</label>
+                        <select id="clientRatingStars" class="w-full bg-[#050b18] border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]">
+                            <option value="5">★★★★★ - Vizuri Sana</option>
+                            <option value="4">★★★★☆ - Vizuri</option>
+                            <option value="3">★★★☆☆ - Wastani</option>
+                            <option value="2">★★☆☆☆ - Mbaya</option>
+                            <option value="1">★☆☆☆☆ - Mbaya Sana</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Maoni Yako:</label>
+                        <textarea id="clientFeedbackComment" placeholder="Andika maoni yako..." class="w-full bg-[#050b18] border border-slate-800 p-2.5 rounded-xl text-white h-16 focus:outline-none focus:border-[#00e5ff]"></textarea>
+                    </div>
+                    <button onclick="submitClientFeedback()" class="w-full bg-[#0066ff] hover:bg-blue-600 text-white font-bold py-2.5 rounded-xl transition text-xs">Wasilisha Maoni</button>
+                </div>
+            </section>
+
+            <!-- 7. WARRANTY TRACKER -->
+            <section class="glass-card p-5 rounded-2xl shadow-xl space-y-3">
+                <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i> 7. 🛡️ Udhamana (Warranty)
+                </h2>
+                <div id="warrantyContainer" class="bg-[#050b18] p-3 rounded-xl border border-slate-800 text-[11px] space-y-2">
+                    <div class="flex justify-between"><span>Kifaa:</span> <b class="text-white">Tecno Spark 10</b></div>
+                    <div class="flex justify-between"><span>Siku Zilizobaki:</span> <b class="text-emerald-400">Siku 28</b></div>
+                    <div class="flex justify-between"><span>Hali:</span> <b class="text-[#00e5ff]">Inafanya Kazi</b></div>
+                </div>
+            </section>
+
+            <!-- 8. TECH TIPS -->
+            <section class="glass-card p-5 rounded-2xl shadow-xl space-y-3">
+                <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
+                    <i data-lucide="lightbulb" class="w-4 h-4"></i> 8. 💡 Tips za Simu (Tech Tips)
+                </h2>
+                <div class="space-y-2 text-[11px] text-slate-300">
+                    <div class="bg-[#050b18] p-2.5 rounded-xl border border-slate-800">
+                        <b>• Utunzaji Betri:</b> Usitumie simu ikiwa kwenye chaji kuzuia joto kali.
+                    </div>
+                    <div class="bg-[#050b18] p-2.5 rounded-xl border border-slate-800">
+                        <b>• Usalama wa Kioo:</b> Tumia Tempered Glass ya ubora kuzuia kupondeka.
+                    </div>
+                </div>
+            </section>
+
+            <!-- 9. PICKUP REQUEST -->
+            <section class="glass-card p-5 rounded-2xl shadow-xl space-y-3">
+                <h2 class="text-sm font-extrabold text-[#00e5ff] flex items-center gap-2">
+                    <i data-lucide="truck" class="w-4 h-4"></i> 9. 🚀 Omba Pickup Service
+                </h2>
+                <div class="space-y-3 text-xs">
+                    <input type="text" id="pickupLocation" placeholder="Weka eneo lako kamili..." class="w-full bg-[#050b18] border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-[#00e5ff]">
+                    <button onclick="requestPickupService()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold py-2.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+                        <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                        <span>Omba Usafiri wa Kifaa</span>
+                    </button>
+                </div>
+            </section>
+
+        </aside>
 
     </main>
 
-    <footer class="w-full max-w-5xl mx-auto text-center py-6 mt-6 border-t border-slate-800 text-slate-500 text-xs">
+    <footer class="w-full max-w-7xl mx-auto text-center py-6 mt-6 border-t border-slate-800 text-slate-500 text-xs">
         <p>© 2026 BYAO Mobile Solution - Global Customer Portal Edition</p>
     </footer>
 
@@ -455,12 +537,16 @@
             setTimeout(() => { toast.classList.add('hidden'); }, duration);
         }
 
+        // Action kwa ajili ya kufungua mteja namba 2
+        function funguaMtejaNamba2(e) {
+            showToast("🚀 Inafungua Portal ya Mteja Namba 2 (VIP)...");
+        }
+
         // --- VARIABLE ZA GLOBAL ZA LOGIN NA CHAT ---
         let currentUserPhone = ''; // Itahifadhi namba safi ya simu
         let currentSelectedTechId = 'GENERAL'; // Fundi aliyechaguliwa (default ni GENERAL)
 
         function cleanPhoneNumber(phone) {
-            // Inaondoa +, spaces, na alama nyingine zisizotakiwa kwenye Njia ya Firebase
             return phone.replace(/[^0-9]/g, '');
         }
 
@@ -473,7 +559,6 @@
                 return;
             }
 
-            // Safisha namba ya simu
             currentUserPhone = cleanPhoneNumber(rawSimu);
 
             if (currentUserPhone.length < 8) {
@@ -481,7 +566,6 @@
                 return;
             }
 
-            // Hifadhi kwenye LocalStorage ili mteja akirefresh asitoke (Auto-Login)
             localStorage.setItem('byao_user_name', jina);
             localStorage.setItem('byao_user_phone', currentUserPhone);
 
@@ -491,7 +575,6 @@
             
             showToast(`✅ Karibu kwenye portal yako, ${jina}!`);
 
-            // Kuanzisha usomaji wa chat mara tu mteja anapoingia
             loadPrivateChatHistory();
         }
 
@@ -536,55 +619,91 @@
             });
         }
 
-        /* FUNCTION YA KUSIKILIZA MATANGAZO NA ONYESHO LA VIDEO SHAKING FOR 5 SECONDS */
+        // KUSOMA NA KUONYESHA MATANGAZO YOTE MAWILI (JUU NA CHINI YA CHAT)
         function listenToGlobalAds() {
-            const adsContainer = document.getElementById('globalAdsContainer');
-            if (!adsContainer) return;
-
             database.ref('global_ads').on('value', (snapshot) => {
-                const adsData = snapshot.val();
-                adsContainer.innerHTML = '';
+                const adsContainer = document.getElementById('globalAdsContainer');
+                const chatBottomAdsContainer = document.getElementById('firebaseAdsContainerChatBottom');
+                
+                if (adsContainer) adsContainer.innerHTML = '';
+                if (chatBottomAdsContainer) chatBottomAdsContainer.innerHTML = '';
+                
+                const data = snapshot.val();
 
-                if (!adsData) {
-                    adsContainer.innerHTML = `<div class="col-span-full text-slate-500 text-xs italic">Hakuna matangazo mapya kwa sasa.</div>`;
+                if (!data) {
+                    if (adsContainer) adsContainer.innerHTML = `<div class="text-xs text-slate-500 italic col-span-full">Hakuna matangazo kwa sasa.</div>`;
+                    if (chatBottomAdsContainer) chatBottomAdsContainer.innerHTML = `<div class="text-xs text-slate-500 italic col-span-full">Hakuna matangazo ya ziada.</div>`;
                     return;
                 }
 
-                const adsList = Object.values(adsData);
-                adsList.forEach(ad => {
-                    const adCard = document.createElement('div');
-                    
-                    // Ongeza shake-live-5s darasa ili itikisike kwa sekunde 5 wakati wa kupakia
-                    adCard.className = "shake-live-5s bg-[#050b18] border border-amber-500/30 p-3.5 rounded-xl text-xs space-y-2 text-white shadow-lg";
+                const now = Date.now();
+                const allAds = Object.values(data);
 
-                    let videoElement = '';
-                    const videoUrl = ad.videoUrl || ad.video || ad.media;
-                    
-                    if (videoUrl) {
-                        if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
-                            const ytId = videoUrl.split('v=')[1] || videoUrl.split('/').pop();
-                            videoElement = `
-                                <div class="w-full h-44 rounded-lg overflow-hidden border border-slate-700 mt-2">
-                                    <iframe class="w-full h-full" src="https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1" frameborder="0" allowfullscreen></iframe>
-                                </div>`;
-                        } else {
-                            videoElement = `
-                                <div class="w-full rounded-lg overflow-hidden border border-slate-700 bg-black mt-2">
-                                    <video src="${videoUrl}" autoplay loop muted playsinline controls class="w-full max-h-48 object-cover"></video>
-                                </div>`;
+                allAds.forEach((ad, index) => {
+                    const isLive = (ad.isApproved === undefined || ad.isApproved === true) && (!ad.expiresAt || ad.expiresAt > now || ad.expiresAt === 0);
+
+                    if (isLive) {
+                        const adCard = document.createElement('div');
+                        adCard.className = "shake-live-5s bg-[#050b18] border border-amber-500/30 p-3.5 rounded-xl text-xs space-y-2 text-white shadow-lg";
+
+                        let mediaTag = '';
+                        const mediaUrl = ad.mediaUrl || ad.videoUrl || ad.video || ad.media || ad.imageUrl || ad.image;
+                        const mediaType = ad.mediaType || '';
+
+                        if (mediaUrl) {
+                            const lowerUrl = mediaUrl.toLowerCase();
+                            
+                            if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
+                                const ytId = mediaUrl.split('v=')[1] || mediaUrl.split('/').pop();
+                                mediaTag = `
+                                    <div class="w-full h-44 rounded-lg overflow-hidden border border-slate-800 mt-2">
+                                        <iframe class="w-full h-full" src="https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1" frameborder="0" allowfullscreen></iframe>
+                                    </div>`;
+                            } 
+                            else if (mediaType === 'video' || lowerUrl.includes('.mp4') || lowerUrl.includes('.webm') || lowerUrl.includes('.mkv') || lowerUrl.includes('video') || lowerUrl.includes('alt=media')) {
+                                mediaTag = `
+                                    <div class="w-full rounded-lg overflow-hidden border border-slate-800 bg-black mt-2">
+                                        <video src="${mediaUrl}" controls autoplay loop muted playsinline class="w-full max-h-52 object-contain"></video>
+                                    </div>`;
+                            } 
+                            else {
+                                mediaTag = `
+                                    <div class="w-full rounded-lg overflow-hidden border border-slate-800 mt-2">
+                                        <img src="${mediaUrl}" class="w-full max-h-48 object-cover rounded-lg" alt="Ad Image" />
+                                    </div>`;
+                            }
+                        }
+
+                        adCard.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <b class="text-amber-300 font-extrabold text-sm">${ad.title || ad.kichwa || 'Tangazo Rasmi'}</b>
+                                <span class="text-[9px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded font-bold">LIVE</span>
+                            </div>
+                            <p class="text-slate-300 text-[11px] leading-relaxed">${ad.desc || ad.description || ad.message || ''}</p>
+                            ${mediaTag}
+                            <div class="text-[10px] text-slate-400 pt-1 flex justify-between items-center">
+                                <span>${ad.owner ? 'Mmiliki: ' + ad.owner : ''}</span>
+                                ${ad.merchantPhone ? `<a href="tel:${ad.merchantPhone}" class="text-[#00e5ff] font-bold hover:underline">Wasiliana Nasi</a>` : ''}
+                            </div>
+                        `;
+
+                        // Jaza sehemu ya Juu au ya Chini ya Chat
+                        if (adsContainer && index % 2 === 0) {
+                            adsContainer.appendChild(adCard);
+                        } else if (chatBottomAdsContainer) {
+                            chatBottomAdsContainer.appendChild(adCard);
+                        } else if (adsContainer) {
+                            adsContainer.appendChild(adCard);
                         }
                     }
-
-                    adCard.innerHTML = `
-                        <div class="flex justify-between items-center">
-                            <b class="text-amber-300 font-extrabold text-sm">${ad.title || 'Tangazo Rasmi'}</b>
-                            <span class="text-[9px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded font-bold">LIVE</span>
-                        </div>
-                        <p class="text-slate-300 text-[11px] leading-relaxed">${ad.message || ad.desc || ad.description || ''}</p>
-                        ${videoElement}
-                    `;
-                    adsContainer.appendChild(adCard);
                 });
+
+                if (adsContainer && adsContainer.children.length === 0) {
+                    adsContainer.innerHTML = `<div class="text-xs text-slate-500 italic col-span-full">Hakuna matangazo yaliyo hewani kwa sasa.</div>`;
+                }
+                if (chatBottomAdsContainer && chatBottomAdsContainer.children.length === 0) {
+                    chatBottomAdsContainer.innerHTML = `<div class="text-xs text-slate-500 italic col-span-full">Hakuna matangazo yaliyo hewani kwa sasa.</div>`;
+                }
             });
         }
 
@@ -643,7 +762,6 @@
             
             updateMessagePreview();
 
-            // Elekeza ukurasa hadi kwenye sehemu ya chat
             document.getElementById('chat-messages').scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -669,9 +787,8 @@
             }
         }
 
-        /* --- LOGIC ZA CHAT, PREVIEW & KUREKODI SAUTI --- */
+        /* --- LOGIC ZA CHAT, PREVIEW & KUREKODI SAUTI (HAPAKUBOMOLEWA CHOCHOTE) --- */
 
-        // Live Text Preview
         function updateMessagePreview() {
             const text = document.getElementById('chat-input').value.trim();
             if (text && !selectedFileObject) {
@@ -684,7 +801,6 @@
             }
         }
 
-        // Handling files selection (Image, Video, Audio, PDF)
         function handleFileSelected(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -700,7 +816,6 @@
             reader.readAsDataURL(file);
         }
 
-        // Function ya Onyesho la Preview
         function displayMediaPreview(fileName, fileSize, type, dataUrl) {
             const previewBox = document.getElementById('chat-preview-box');
             const thumbContainer = document.getElementById('preview-thumb-container');
@@ -723,7 +838,6 @@
                     <div class="flex flex-col gap-1 w-full mt-1">
                         <audio controls controlsList="nodownload" class="w-full h-9 rounded-lg bg-slate-900 border border-slate-700">
                             <source src="${dataUrl}" type="${type}">
-                            Browser yako haitogostakabili kicheza sauti hiki.
                         </audio>
                         <span class="text-[10px] text-emerald-400 font-bold">🎵 Sauti ipo tayari kusikilizwa/kutumwa</span>
                     </div>
@@ -737,7 +851,6 @@
             }
         }
 
-        // Voice Recording Logic
         async function toggleVoiceRecording() {
             const btn = document.getElementById('voiceRecordBtn');
             if (!isRecording) {
@@ -813,7 +926,6 @@
             updateMessagePreview();
         }
 
-        // Function ya Kutuma Ujumbe Kwenye Path ya Faragha
         function sendMessage() {
             const inputField = document.getElementById('chat-input');
             const messageText = inputField.value.trim();
@@ -862,7 +974,6 @@
             });
         }
 
-        // Function ya Kusikiliza na Kuonyesha Chat za Faragha Pekee
         function loadPrivateChatHistory() {
             if (!currentUserPhone) return;
 
@@ -936,10 +1047,10 @@
 
             dbMerchantProducts.forEach(sp => {
                 const card = document.createElement('div');
-                card.className = "bg-[#050b18] border border-slate-800 p-3.5 rounded-xl text-xs text-white space-y-1.5";
+                card.className = "bg-[#050b18] border border-slate-800 p-3 rounded-xl text-xs text-white space-y-1";
                 card.innerHTML = `
-                    <h5 class="font-bold text-[#00e5ff]">${sp.jina}</h5>
-                    <div class="flex justify-between items-center text-[11px]">
+                    <h5 class="font-bold text-[#00e5ff] text-[11px]">${sp.jina}</h5>
+                    <div class="flex justify-between items-center text-[10px]">
                         <span class="text-emerald-400 font-bold">Tsh ${(sp.bei || 0).toLocaleString()}</span>
                         <span class="text-slate-400">Stock: ${sp.stock || 0}</span>
                     </div>
@@ -955,15 +1066,15 @@
 
             dbSimu.forEach(s => {
                 const el = document.createElement('div');
-                el.className = "bg-[#050b18] p-3.5 rounded-xl border border-slate-800 text-xs flex justify-between items-center";
+                el.className = "bg-[#050b18] p-3 rounded-xl border border-slate-800 text-[11px] flex justify-between items-center";
                 el.innerHTML = `
                     <div>
-                        <div class="font-bold text-[#00e5ff]">${s.id} - ${s.brand} ${s.model}</div>
-                        <div class="text-slate-400 text-[10px]">Tarehe: ${s.tarehe} | Hali: ${s.status}</div>
+                        <div class="font-bold text-[#00e5ff]">${s.id}</div>
+                        <div class="text-slate-400 text-[9px]">${s.brand} ${s.model}</div>
                     </div>
                     <div class="text-right">
                         <div class="font-bold text-white">Tsh ${(s.bei || 0).toLocaleString()}</div>
-                        <span class="text-emerald-400 text-[10px]">Imelipwa ✓</span>
+                        <span class="text-emerald-400 text-[9px]">Imelipwa ✓</span>
                     </div>
                 `;
                 container.appendChild(el);
@@ -987,4 +1098,3 @@
     </script>
 </body>
 </html>
-
